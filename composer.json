@@ -1,0 +1,24 @@
+{
+	"name": "edoger/eorm-src",
+	"description": "A Simple PHP Object Relational Mapping Library.",
+	"keywords": ["eorm", "orm", "edoger-orm"],
+	"license": "MIT",
+	"type": "library",
+	"homepage": "https://github.com/edoger/eorm",
+	"authors": [
+		{
+			"name": "Qingshan Luo",
+			"email": "shanshan.lqs@gmail.com",
+			"homepage": "https://www.edoger.com",
+			"role": "developer"
+		}
+	],
+	"require": {
+        "php": ">=5.6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Eorm\\": "src/Eorm/"
+        }
+    }
+}
