@@ -46,7 +46,7 @@ Create database table.
 | 1          | XiaoMing   | 18         | China      |
 | 2          | DaHuang    | 10         | China      |
 
-5. Query by primary key.
+Query by primary key.
 
 ```php
 // [
