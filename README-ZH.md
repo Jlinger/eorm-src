@@ -1,14 +1,14 @@
-# About Eorm #
+# 介绍 #
 
-- Eorm is a simple PHP object relational mapping library.
-- Eorm is very simple, you don't have to spend too much time learning it.
-- Eorm can help the application to easily operate the MySQL.
-- Eorm can be easily integrated into any application.
-- [中文版](README-ZH.md)
+- Eorm 是一个轻量级的ORM库。
+- Eorm 非常简单，学习成本非常低。
+- Eorm 能够让应用程序便捷地操作MySQL数据库。
+- Eorm 易于集成，能够快速地应用于你的应用程序中。
+- [English](README.md)
 
-# Example #
+# 示例 #
 
-Create a database connection.
+创建一个到数据库的连接。
 
 ```php
 $username = 'eorm';
@@ -18,36 +18,36 @@ $dsn = 'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8';
 $connect = new PDO($dsn, $username, $password);
 ```
 
-Bind the connection to Eorm\Server.
+绑定数据库连接到 Eorm\Server 类。
 
 ```php
 Eorm\Server::bind($connect);
 
 ```
 
-Create a table model.
+创建表的模型。
 
 ```php
 class Users extends Eorm\Eorm
 {
-    // The default table name is the model class name (users).
-    // This is an optional attribute.
+    // 默认的表名就是是类的名称的小写（users）。
+    // 这是一个可选的属性。
     protected static $table = null;
 
-    // The default auto increment primary key is 'id'.
-    // This is an optional attribute.
+    // 默认的自增主键是 id 。
+    // 这是一个可选的属性。
     protected static $primaryKey = 'id';
 }
 ```
 
-Create database table.
+创建一个测试表。
 
 | id         | name       | age        | country    |
 | ---------- | ---------- | ---------- | ---------- |
 | 1          | XiaoMing   | 18         | China      |
 | 2          | DaHuang    | 10         | China      |
 
-Query by primary key.
+通过主键查询行。
 
 ```php
 // [
@@ -56,7 +56,7 @@ Query by primary key.
 Users::find(1)->result()->toArray();
 ```
 
-Query all.
+查询全表。
 
 ```php
 // [
@@ -66,13 +66,13 @@ Query all.
 Users::all()->result()->toArray();
 ```
 
-Query count.
+查询表的总行数。
 
 ```php
 Users::count();  // 2
 ```
 
-Query by condition.
+通过条件进行查询。
 
 ```php
 // [
@@ -86,7 +86,7 @@ Users::where('name', 'Dahuang')->get()->result()->toArray();
 Users::where('age', 15, '>')->get()->result()->toArray();
 ```
 
-Insert row.
+插入行。
 
 ```php
 Users::create(['name' => 'Halle', 'age' => 22, 'country' => 'America']);
@@ -98,7 +98,7 @@ Users::create(['name' => 'Halle', 'age' => 22, 'country' => 'America']);
 | 2          | DaHuang    | 10         | China      |
 | 3          | Halle      | 22         | America    |
 
-Insert 3 rows.
+插入 3 行。
 
 ```php
 Users::create([
@@ -117,7 +117,7 @@ Users::create([
 | 5          | Pierre     | 15         | England    |
 | 6          | Alice      | 9          | England    |
 
-Delete row by primary key.
+通过主键删除行。
 
 ```php
 Users::destroy(1);
@@ -131,7 +131,7 @@ Users::destroy(1);
 | 5          | Pierre     | 15         | England    |
 | 6          | Alice      | 9          | England    |
 
-Delete row by condition.
+通过条件删除行。
 
 ```php
 Users::where('age', 10, '<=')->get()->delete();
@@ -143,7 +143,7 @@ Users::where('age', 10, '<=')->get()->delete();
 | 4          | David      | 30         | America    |
 | 5          | Pierre     | 15         | England    |
 
-Update rows.
+更新行。
 
 ```php
 Users::find([3, 5])->set('age', 20)->save();
@@ -155,7 +155,7 @@ Users::find([3, 5])->set('age', 20)->save();
 | 4          | David      | 30         | America    |
 | 5          | Pierre     | 20         | England    |
 
-Replace row.
+替换行。（这个会执行先删除再插入）
 
 ```php
 Users::find([4, 5])->set('age', 45)->replace();
@@ -167,19 +167,19 @@ Users::find([4, 5])->set('age', 45)->replace();
 | 6          | David      | 45         | America    |
 | 7          | Pierre     | 45         | England    |
 
-Check exists rows ?
+检查行是否存在。
 
 ```php
 Users::where('country', 'China')->exists();    // false
 Users::where('country', 'England')->exists();  // true
 ```
 
-Clean all rows.
+清空表。（同时会截断自增主键）
 
 ```php
 Users::clean();  // The table is empty.
 ```
 
-# Licence #
+# 许可证 #
 
 MIT
