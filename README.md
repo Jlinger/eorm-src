@@ -7,7 +7,7 @@
 
 # Example #
 
-1. Create a database connection.
+Create a database connection.
 
 ```php
 $username = 'eorm';
@@ -17,14 +17,14 @@ $dsn = 'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8';
 $connect = new PDO($dsn, $username, $password);
 ```
 
-2. Bind the connection to Eorm\Server.
+Bind the connection to Eorm\Server.
 
 ```php
-Eorm\Server::bind(new PDO($dsn, $username, $password));
+Eorm\Server::bind($connect);
 
 ```
 
-3. Create a table model.
+Create a table model.
 
 ```php
 class Users extends Eorm\Eorm
@@ -39,7 +39,7 @@ class Users extends Eorm\Eorm
 }
 ```
 
-4. Create database table.
+Create database table.
 
 | id         | name       | age        | country    |
 | ---------- | ---------- | ---------- | ---------- |
@@ -55,7 +55,7 @@ class Users extends Eorm\Eorm
 Users::find(1)->result()->toArray();
 ```
 
-6. Query all.
+Query all.
 
 ```php
 // [
@@ -65,13 +65,13 @@ Users::find(1)->result()->toArray();
 Users::all()->result()->toArray();
 ```
 
-7. Query count.
+Query count.
 
 ```php
 Users::count();  // 2
 ```
 
-8. Query by condition.
+Query by condition.
 
 ```php
 // [
@@ -85,7 +85,7 @@ Users::where('name', 'Dahuang')->get()->result()->toArray();
 Users::where('age', 15, '>')->get()->result()->toArray();
 ```
 
-9. Insert row.
+Insert row.
 
 ```php
 Users::create(['name' => 'Halle', 'age' => 22, 'country' => 'America']);
@@ -97,7 +97,7 @@ Users::create(['name' => 'Halle', 'age' => 22, 'country' => 'America']);
 | 2          | DaHuang    | 10         | China      |
 | 3          | Halle      | 22         | America    |
 
-10. Insert 3 rows.
+Insert 3 rows.
 
 ```php
 Users::create([
@@ -116,7 +116,7 @@ Users::create([
 | 5          | Pierre     | 15         | England    |
 | 6          | Alice      | 9          | England    |
 
-11. Delete row by primary key.
+Delete row by primary key.
 
 ```php
 Users::destroy(1);
@@ -130,7 +130,7 @@ Users::destroy(1);
 | 5          | Pierre     | 15         | England    |
 | 6          | Alice      | 9          | England    |
 
-11. Delete row by condition.
+Delete row by condition.
 
 ```php
 Users::where('age', 10, '<=')->get()->delete();
@@ -142,7 +142,7 @@ Users::where('age', 10, '<=')->get()->delete();
 | 4          | David      | 30         | America    |
 | 5          | Pierre     | 15         | England    |
 
-12. Update rows.
+Update rows.
 
 ```php
 Users::find([3, 5])->set('age', 20)->save();
@@ -154,7 +154,7 @@ Users::find([3, 5])->set('age', 20)->save();
 | 4          | David      | 30         | America    |
 | 5          | Pierre     | 20         | England    |
 
-13. Replace row.
+Replace row.
 
 ```php
 Users::find([4, 5])->set('age', 45)->replace();
@@ -166,15 +166,19 @@ Users::find([4, 5])->set('age', 45)->replace();
 | 6          | David      | 45         | America    |
 | 7          | Pierre     | 45         | England    |
 
-14. Check exists rows ?
+Check exists rows ?
 
 ```php
 Users::where('country', 'China')->exists();    // false
 Users::where('country', 'England')->exists();  // true
 ```
 
-15. Clean all rows.
+Clean all rows.
 
 ```php
 Users::clean();  // The table is empty.
 ```
+
+# Licence #
+
+MIT
