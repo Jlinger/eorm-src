@@ -1,28 +1,32 @@
-# About #
+# About Eorm #
 
-- Eorm is a simple PHP object relational mapping component.
+- Eorm is a simple PHP object relational mapping library.
+- Eorm is very simple, you don't have to spend too much time learning it.
 - Eorm can help the application to easily operate the MySQL.
 - Eorm can be easily integrated into any application.
 
-# Documentation #
+# Example #
 
-### Bind connection ###
+1. Create a database connection.
 
 ```php
-<?php
-    $dsn = 'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8';
-    $username = 'eorm';
-    $password = 'eorm';
+$username = 'eorm';
+$password = 'eorm';
+$dsn = 'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8';
 
-    // Bind connect to Eorm\Server.
-    Eorm\Server::bind(new PDO($dsn, $username, $password));
-?>
+$connect = new PDO($dsn, $username, $password);
 ```
 
-### Create model ###
+2. Bind the connection to Eorm\Server.
 
 ```php
-<?php
+Eorm\Server::bind(new PDO($dsn, $username, $password));
+
+```
+
+3. Create a table model.
+
+```php
 class Users extends Eorm\Eorm
 {
     // The default table name is the model class name (users).
@@ -33,176 +37,144 @@ class Users extends Eorm\Eorm
     // This is an optional attribute.
     protected static $primaryKey = 'id';
 }
-?>
 ```
 
-### Create table ###
+4. Create database table.
 
 | id         | name       | age        | country    |
 | ---------- | ---------- | ---------- | ---------- |
-| 1          | Xiaoming   | 18         | China      |
+| 1          | XiaoMing   | 18         | China      |
+| 2          | DaHuang    | 10         | China      |
 
-### Common methods ###
-
-Query by primary key.
+5. Query by primary key.
 
 ```php
-<?php
-    // ['id' => '1', 'name' => 'Xiaoming', 'age' => '18', 'country' => 'China']
-    Users::find(1)->result()->toArray()[0];
-
-    // ['name' => 'Xiaoming', 'country' => 'China']
-    Users::find(1)->result()->toArray(['name', 'country'])[0];
-?>
+// [
+//   ['id' => '1', 'name' => 'XiaoMing', 'age' => '18', 'country' => 'China']
+// ]
+Users::find(1)->result()->toArray();
 ```
 
-Insert row.
+6. Query all.
 
 ```php
-<?php
-    // Insert 1 row.
-    Users::create([
-        'name'    => 'Dahuang',
-        'age'     => 3,
-        'country' => 'China',
-    ]);
-
-    // Insert 2 rows.
-    Users::create([
-        'name'    => ['Tom', 'Aik'],
-        'age'     => [24, 22],
-        'country' => 'America', // The same value can be shortened.
-    ]);
-?>
+// [
+//   ['id' => '1', 'name' => 'XiaoMing', 'age' => '18', 'country' => 'China'],
+//   ['id' => '2', 'name' => 'Dahuang',  'age' => '10', 'country' => 'China'],
+// ]
+Users::all()->result()->toArray();
 ```
 
-| id         | name       | age        | country    |
-| ---------- | ---------- | ---------- | ---------- |
-| 1          | Xiaoming   | 18         | China      |
-| 2          | Dahuang    | 3          | China      |
-| 3          | Tom        | 24         | America    |
-| 4          | Aik        | 22         | America    |
-
-Query all.
+7. Query count.
 
 ```php
-<?php
-    // [
-    //   ['id' => '1', 'name' => 'Xiaoming', 'age' => '18', 'country' => 'China'],
-    //   ['id' => '2', 'name' => 'Dahuang',  'age' => '3',  'country' => 'China'],
-    //   ['id' => '3', 'name' => 'Tom',      'age' => '24', 'country' => 'America'],
-    //   ['id' => '4', 'name' => 'Aik',      'age' => '22', 'country' => 'America']
-    // ]
-    Users::all()->result()->toArray();
-?>
+Users::count();  // 2
 ```
 
-Query count.
+8. Query by condition.
 
 ```php
-<?php
-    // 4
-    Users::count();
-?>
+// [
+//   ['id' => '2', 'name' => 'Dahuang',  'age' => '10', 'country' => 'China'],
+// ]
+Users::where('name', 'Dahuang')->get()->result()->toArray();
+
+// [
+//   ['id' => '1', 'name' => 'XiaoMing', 'age' => '18', 'country' => 'China']
+// ]
+Users::where('age', 15, '>')->get()->result()->toArray();
 ```
 
-Where.
+9. Insert row.
 
 ```php
-<?php
-    // ['id' => '2', 'name' => 'Dahuang',  'age' => '3',  'country' => 'China']
-    Users::where('name', 'Dahuang')->get()->result()->toArray()[0];
-
-    // [
-    //   ['id' => '3', 'name' => 'Tom', 'age' => '24', 'country' => 'America'],
-    //   ['id' => '4', 'name' => 'Aik', 'age' => '22', 'country' => 'America']
-    // ]
-    Users::where('age', 20, '>')->get()->result()->toArray();
-    // or
-    Users::where('age', [24, 22])->get()->result()->toArray();
-
-    // ['id' => '4', 'name' => 'Aik', 'age' => '22', 'country' => 'America']
-    Users::where('age', 20, '>')->where('age', 23, '<')->get()->result()->toArray()[0];
-?>
-```
-
-Delete.
-
-```php
-<?php
-    // Delete row of 'id' equal 1.
-    Users::destroy(1);
-?>
+Users::create(['name' => 'Halle', 'age' => 22, 'country' => 'America']);
 ```
 
 | id         | name       | age        | country    |
 | ---------- | ---------- | ---------- | ---------- |
-| 2          | Dahuang    | 3          | China      |
-| 3          | Tom        | 24         | America    |
-| 4          | Aik        | 22         | America    |
+| 1          | XiaoMing   | 18         | China      |
+| 2          | DaHuang    | 10         | China      |
+| 3          | Halle      | 22         | America    |
 
+10. Insert 3 rows.
 
 ```php
-<?php
-    // Delete row of 'name' equal 'Tom'.
-    Users::where('name', 'Tom')->get()->delete();
-?>
+Users::create([
+    'name'    => ['David', 'Pierre', 'Alice'],
+    'age'     => [30, 15, 9],
+    'country' => ['America', 'England', 'England']
+]);
 ```
 
 | id         | name       | age        | country    |
 | ---------- | ---------- | ---------- | ---------- |
-| 2          | Dahuang    | 3          | China      |
-| 4          | Aik        | 22         | America    |
+| 1          | XiaoMing   | 18         | China      |
+| 2          | DaHuang    | 10         | China      |
+| 3          | Halle      | 22         | America    |
+| 4          | David      | 30         | America    |
+| 5          | Pierre     | 15         | England    |
+| 6          | Alice      | 9          | England    |
 
-
-Clean all data.
-
-```php
-<?php
-    // The table is empty.
-    Users::clean();
-?>
-```
-
-Update row.
+11. Delete row by primary key.
 
 ```php
-<?php
-    // Insert 1 row.
-    Users::create([
-        'name'    => 'Dahuang',
-        'age'     => 3,
-        'country' => 'China',
-    ]);
-?>
+Users::destroy(1);
 ```
 
 | id         | name       | age        | country    |
 | ---------- | ---------- | ---------- | ---------- |
-| 1          | Dahuang    | 3          | China      |
+| 2          | DaHuang    | 10         | China      |
+| 3          | Halle      | 22         | America    |
+| 4          | David      | 30         | America    |
+| 5          | Pierre     | 15         | England    |
+| 6          | Alice      | 9          | England    |
 
+11. Delete row by condition.
 
 ```php
-<?php
-    // Update 'age' to 5.
-    Users::find(1)->set('age', 5)->save();
-?>
+Users::where('age', 10, '<=')->get()->delete();
 ```
 
 | id         | name       | age        | country    |
 | ---------- | ---------- | ---------- | ---------- |
-| 1          | Dahuang    | 5          | China      |
+| 3          | Halle      | 22         | America    |
+| 4          | David      | 30         | America    |
+| 5          | Pierre     | 15         | England    |
 
-Replace row.
+12. Update rows.
 
 ```php
-<?php
-    // Delete row and insert row.
-    // The 'id' equal 2.
-    Users::find(1)->set('age', 7)->replace();
-?>
+Users::find([3, 5])->set('age', 20)->save();
 ```
 
 | id         | name       | age        | country    |
 | ---------- | ---------- | ---------- | ---------- |
-| 2          | Dahuang    | 7          | China      |
+| 3          | Halle      | 20         | America    |
+| 4          | David      | 30         | America    |
+| 5          | Pierre     | 20         | England    |
+
+13. Replace row.
+
+```php
+Users::find([4, 5])->set('age', 45)->replace();
+```
+
+| id         | name       | age        | country    |
+| ---------- | ---------- | ---------- | ---------- |
+| 3          | Halle      | 20         | America    |
+| 6          | David      | 45         | America    |
+| 7          | Pierre     | 45         | England    |
+
+14. Check exists rows ?
+
+```php
+Users::where('country', 'China')->exists();    // false
+Users::where('country', 'England')->exists();  // true
+```
+
+15. Clean all rows.
+
+```php
+Users::clean();  // The table is empty.
+```
