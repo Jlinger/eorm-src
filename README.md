@@ -6,6 +6,8 @@
 - Eorm can be easily integrated into any application.
 - [中文版](README-ZH.md)
 
+[![Build Status](https://travis-ci.org/edoger/eorm-src.svg?branch=master)](https://travis-ci.org/edoger/eorm-src)
+
 # Example #
 
 Create a database connection.
