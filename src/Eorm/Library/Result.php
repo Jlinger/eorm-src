@@ -140,9 +140,9 @@ class Result
             function ($row) use ($map, $target, $reference, $default) {
                 $assignment = $row[$reference];
                 if (array_key_exists($assignment, $map)) {
-                    $row[$assignment] = $map[$assignment];
+                    $row[$target] = $map[$assignment];
                 } else {
-                    $row[$assignment] = $default;
+                    $row[$target] = $default;
                 }
                 return $row;
             },
