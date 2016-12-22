@@ -24,14 +24,16 @@ class Query
     protected $where;
     protected $table;
     protected $primaryKey;
+    protected $server;
     protected $limit = 0;
     protected $skip  = 0;
 
-    public function __construct(Where $where, $table, $primaryKey)
+    public function __construct(Where $where, $table, $primaryKey, $server)
     {
         $this->where      = $where;
         $this->table      = $table;
         $this->primaryKey = $primaryKey;
+        $this->server     = $server;
     }
 
     public function where($target, $value = null, $option = true)
@@ -81,9 +83,10 @@ class Query
         }
 
         return new Storage(
-            Server::execute($sql, $argument)->fetchAll(PDO::FETCH_ASSOC),
+            Server::execute($this->server, $sql, $argument)->fetchAll(PDO::FETCH_ASSOC),
             $this->table,
-            $this->primaryKey
+            $this->primaryKey,
+            $this->server
         );
     }
 
@@ -104,7 +107,11 @@ class Query
             $argument->push($this->where->getArgument());
         }
 
-        return (int) Server::execute($sql, $argument)->fetchAll(PDO::FETCH_ASSOC)[0]['total'];
+        return (int) Server::execute(
+            $this->server,
+            $sql,
+            $argument
+        )->fetchAll(PDO::FETCH_ASSOC)[0]['total'];
     }
 
     public function exists()
@@ -120,6 +127,7 @@ class Query
         }
 
         return (bool) Server::execute(
+            $this->server,
             "SELECT EXISTS({$sql}) AS `has`",
             $argument
         )->fetchAll(PDO::FETCH_ASSOC)[0]['has'];

@@ -23,14 +23,16 @@ class Storage
     protected $source;
     protected $table;
     protected $primaryKey;
+    protected $server;
     protected $primaryKeys = [];
     protected $changes     = [];
 
-    public function __construct(array $source, $table, $primaryKey)
+    public function __construct(array $source, $table, $primaryKey, $server)
     {
         $this->source     = $source;
         $this->table      = $table;
         $this->primaryKey = $primaryKey;
+        $this->server     = $server;
 
         if (!empty($source)) {
             $this->primaryKeys = array_column($source, $primaryKey);
@@ -79,6 +81,7 @@ class Storage
             }, array_keys($this->changes)));
 
             Server::execute(
+                $this->server,
                 "UPDATE {$table} SET {$changes} WHERE {$where} LIMIT {$length}",
                 (new Argument($this->changes))->push($this->primaryKeys)
             );
@@ -122,9 +125,13 @@ class Storage
             $this->changes = [];
             $this->delete();
 
-            Server::execute("INSERT INTO {$table} ({$field}) VALUES {$values}", $argument);
+            Server::execute(
+                $this->server,
+                "INSERT INTO {$table} ({$field}) VALUES {$values}",
+                $argument
+            );
 
-            $this->primaryKeys = Server::id($rows);
+            $this->primaryKeys = Helper::range((int) Server::insertId($this->server), $rows);
 
             return $this->reload();
         } else {
@@ -139,6 +146,7 @@ class Storage
             $where = Helper::makeWhereWithPrimaryKey($this->primaryKey, $length);
 
             $this->source = Server::execute(
+                $this->server,
                 "SELECT * FROM {$table} WHERE {$where} LIMIT {$length}",
                 new Argument($this->primaryKeys)
             )->fetchAll(PDO::FETCH_ASSOC);
@@ -160,6 +168,7 @@ class Storage
             $where = Helper::makeWhereWithPrimaryKey($this->primaryKey, $length);
 
             Server::execute(
+                $this->server,
                 "DELETE FROM {$table} WHERE {$where} LIMIT {$length}",
                 new Argument($this->primaryKeys)
             );
@@ -183,9 +192,16 @@ class Storage
 
         $values = Helper::fill($rows, Helper::fill($columns), false);
 
-        Server::execute("INSERT INTO {$table} ({$field}) VALUES {$values}", $argument);
+        Server::execute(
+            $this->server,
+            "INSERT INTO {$table} ({$field}) VALUES {$values}",
+            $argument
+        );
 
-        $this->primaryKeys = Helper::merge(Server::id($rows), $this->primaryKeys);
+        $this->primaryKeys = Helper::merge(
+            Helper::range((int) Server::insertId($this->server), $rows),
+            $this->primaryKeys
+        );
 
         return $this->reload();
     }
