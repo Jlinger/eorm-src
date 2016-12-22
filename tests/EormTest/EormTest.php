@@ -12,16 +12,37 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
+namespace EormTest;
 
-require __DIR__ . '/../vendor/autoload.php';
+use Models\Example;
+use PHPUnit\Framework\TestCase;
 
-// Connect MySQL.
-call_user_func(function () {
-    Eorm\Server::bind(
-        new PDO('mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8', 'root', ''),
-        'eorm'
-    );
-});
+class EormTest extends TestCase
+{
+    public function testCommon()
+    {
+        $this->assertEquals('example', Example::getTable());
+        $this->assertEquals('id', Example::getPrimaryKey());
+        $this->assertEquals('eorm', Example::getServer());
+    }
 
-// Load test model.
-require __DIR__ . '/../src/Models/Example.php';
+    public function testCount()
+    {
+        $this->assertEquals(1, Example::count());
+    }
+
+    public function testAll()
+    {
+        $this->assertEquals(
+            [
+                [
+                    'id'      => '1',
+                    'name'    => 'Edoger',
+                    'age'     => '25',
+                    'country' => 'China',
+                ],
+            ],
+            Example::all()->result()->toArray()
+        );
+    }
+}
