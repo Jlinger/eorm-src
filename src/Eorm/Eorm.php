@@ -28,6 +28,7 @@ class Eorm
 {
     protected static $table      = null;
     protected static $primaryKey = 'id';
+    protected static $server     = 'default';
 
     public static function getTable()
     {
@@ -44,6 +45,11 @@ class Eorm
         return static::$primaryKey;
     }
 
+    public static function getServer()
+    {
+        return static::$server;
+    }
+
     public static function where($target, $value = null, $option = true, $mode = true)
     {
         if (is_bool($target)) {
@@ -55,7 +61,12 @@ class Eorm
             $where = (new Where($mode))->compare($target, $value, $option);
         }
 
-        return new Query($where, static::getTable(), static::getPrimaryKey());
+        return new Query(
+            $where,
+            static::getTable(),
+            static::getPrimaryKey(),
+            static::getServer()
+        );
     }
 
     public static function find($ids)
@@ -97,9 +108,15 @@ class Eorm
 
         $values = Helper::fill($rows, Helper::fill($columns), false);
 
-        Server::execute("INSERT INTO {$table} ({$field}) VALUES {$values}", $argument);
+        Server::execute(
+            static::getServer(),
+            "INSERT INTO {$table} ({$field}) VALUES {$values}",
+            $argument
+        );
 
-        return static::find(Server::id($rows));
+        return static::find(
+            Helper::range((int) Server::insertId(static::getServer()), $rows)
+        );
     }
 
     public static function count()
@@ -108,6 +125,7 @@ class Eorm
         $table = Helper::standardise(static::getTable());
 
         return (int) Server::execute(
+            static::getServer(),
             "SELECT COUNT({$field}) AS `total` FROM {$table}"
         )->fetchAll(PDO::FETCH_ASSOC)[0]['total'];
     }
@@ -120,6 +138,7 @@ class Eorm
         $where    = Helper::makeWhereWithPrimaryKey(static::getPrimaryKey(), $length);
 
         return Server::execute(
+            static::getServer(),
             "DELETE FROM {$table} WHERE {$where} LIMIT {$length}",
             $argument
         )->rowCount();
@@ -127,25 +146,27 @@ class Eorm
 
     public static function clean()
     {
-        Server::execute('TRUNCATE TABLE ' . Helper::standardise(static::getTable()));
-        return true;
+        Server::execute(
+            static::getServer(),
+            'TRUNCATE TABLE ' . Helper::standardise(static::getTable())
+        );
     }
 
     public static function transaction(Closure $closure, $option = null)
     {
-        if (Server::beginTransaction()) {
+        if (Server::beginTransaction(static::getServer())) {
             try {
                 $result = $closure($option);
             } catch (Exception $e) {
-                Server::rollBack();
+                Server::rollBack(static::getServer());
                 throw new EormException($e->getMessage());
             } catch (Throwable $e) {
-                Server::rollBack();
+                Server::rollBack(static::getServer());
                 throw new EormException($e->getMessage());
             }
 
-            if (!Server::commit()) {
-                Server::rollBack();
+            if (!Server::commit(static::getServer())) {
+                Server::rollBack(static::getServer());
                 throw new EormException('Commit transaction failed.');
             }
 

@@ -16,65 +16,116 @@ namespace Eorm;
 
 use Eorm\Exceptions\EormException;
 use Eorm\Library\Argument;
-use Eorm\Library\Helper;
 use Exception;
 use PDO;
 use Throwable;
 
 class Server
 {
-    protected static $pdo = null;
+    protected static $servers = [];
 
-    public static function bind(PDO $pdo)
+    public static function bind(PDO $pdo, $name = 'default')
     {
-        static::$pdo = $pdo;
+        static::$servers[$name] = $pdo;
         return true;
     }
 
-    public static function execute($sql, Argument $argument = null)
+    public static function execute($name, $sql, Argument $argument = null)
     {
-        if (!static::$pdo) {
-            throw new EormException("No database connection available.");
+        if (!isset(static::$servers[$name])) {
+            throw new EormException(
+                "Server connection does not exist, with name '{$name}'."
+            );
         }
-
-        Event::triggerExecute($sql, $argument ? $argument->toArray() : []);
 
         try {
-            $statement = static::$pdo->prepare($sql);
-            if ($statement && $statement->execute($argument ? $argument->toArray() : [])) {
-                return $statement;
-            }
+            $stmt = static::$servers[$name]->prepare($sql);
         } catch (Exception $e) {
-            throw new EormException('Execute SQL error: ' . $e->getMessage());
+            throw new EormException('Execution error: ' . $e->getMessage());
         } catch (Throwable $e) {
-            throw new EormException('Execute SQL error: ' . $e->getMessage());
+            throw new EormException('Execution error: ' . $e->getMessage());
         }
 
-        $information = $statement ? $statement->errorInfo() : static::$pdo->errorInfo();
-        if ($information && isset($information[2])) {
-            throw new EormException('Execute SQL error: ' . $information[2]);
+        if (!$stmt) {
+            throw new EormException(
+                'Execution error: ' . implode(':', static::$servers[$name]->errorInfo())
+            );
+        }
+
+        if (!$stmt->execute($argument ? $argument->toArray() : [])) {
+            throw new EormException(
+                'Execution error: ' . implode(':', $stmt->errorInfo())
+            );
+        }
+
+        return $stmt;
+    }
+
+    public static function insertId($name)
+    {
+        $id = '';
+
+        if (isset(static::$servers[$name])) {
+            $id = static::$servers[$name]->lastInsertId();
+        }
+
+        return $id;
+    }
+
+    public static function beginTransaction($name)
+    {
+        if (!isset(static::$servers[$name])) {
+            return false;
+        }
+
+        $pdo = static::$servers[$name];
+
+        if ($pdo->inTransaction()) {
+            return true;
         } else {
-            throw new EormException('Execute SQL error: Unknown error.');
+            return $pdo->beginTransaction();
         }
     }
 
-    public static function id($length = 0)
+    public static function commit($name)
     {
-        return static::$pdo ? Helper::range((int) static::$pdo->lastInsertId(), $length) : 0;
+        if (!isset(static::$servers[$name])) {
+            return false;
+        }
+
+        $pdo = static::$servers[$name];
+
+        if ($pdo->inTransaction()) {
+            if ($pdo->commit()) {
+                return true;
+            } else {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+                return false;
+            }
+        } else {
+            return true;
+        }
     }
 
-    public static function beginTransaction()
+    public static function rollBack($name)
     {
-        return static::$pdo && !static::$pdo->inTransaction() && static::$pdo->beginTransaction();
-    }
+        if (!isset(static::$servers[$name])) {
+            return false;
+        }
 
-    public static function commit()
-    {
-        return static::$pdo && static::$pdo->inTransaction() && static::$pdo->commit();
-    }
+        $pdo = static::$servers[$name];
 
-    public static function rollBack()
-    {
-        return static::$pdo && static::$pdo->inTransaction() && static::$pdo->rollBack();
+        if ($pdo->inTransaction()) {
+            if ($pdo->rollBack()) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
     }
 }
