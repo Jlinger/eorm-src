@@ -131,7 +131,7 @@ class Storage
                 $argument
             );
 
-            $this->primaryKeys = Helper::range((int) Server::insertId($this->server), $rows);
+            $this->primaryKeys = Helper::range((int) Server::insertId($this->server), $rows, true);
 
             return $this->reload();
         } else {
@@ -199,7 +199,7 @@ class Storage
         );
 
         $this->primaryKeys = Helper::merge(
-            Helper::range((int) Server::insertId($this->server), $rows),
+            Helper::range((int) Server::insertId($this->server), $rows, true),
             $this->primaryKeys
         );
 
