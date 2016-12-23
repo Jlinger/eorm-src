@@ -15,7 +15,6 @@
 namespace Eorm\Library;
 
 use Closure;
-use Eorm\Library\Where;
 use Eorm\Server;
 use PDO;
 

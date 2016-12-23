@@ -4,9 +4,17 @@
          bootstrap="tests/bootstrap.php"
          backupGlobals="false"
          verbose="true">
-    <testsuite name="Diff">
-        <directory suffix="Test.php">tests</directory>
-    </testsuite>
+    <testsuites>
+        <testsuite name="common">
+            <file>tests/EormTest/ArgumentTest.php</file>
+            <file>tests/EormTest/HelperTest.php</file>
+            <file>tests/EormTest/ResultTest.php</file>
+            <file>tests/EormTest/WhereTest.php</file>
+        </testsuite>
+        <testsuite name="database">
+            <file>tests/EormTest/EormTest.php</file>
+        </testsuite>
+    </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">src</directory>

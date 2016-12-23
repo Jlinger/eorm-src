@@ -1,11 +1,16 @@
 language: php
+
 php:
   - 5.6
   - 7.0
   - 7.1
 
+services:
+  - mysql
+
 script:
   - vendor/bin/phpunit
 
 before_script:
+  - mysql -uroot -e "CREATE DATABASE IF NOT EXISTS eorm; DROP TABLE IF EXISTS eorm.example; CREATE TABLE eorm.example (id int(10) unsigned NOT NULL AUTO_INCREMENT, name varchar(255) NOT NULL DEFAULT '', age int(10) unsigned NOT NULL DEFAULT '0', country varchar(255) NOT NULL DEFAULT '', PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8; TRUNCATE TABLE eorm.example;"
   - composer install --no-interaction

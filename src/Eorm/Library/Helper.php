@@ -31,9 +31,17 @@ class Helper
         }
     }
 
-    public static function range($id, $length)
+    public static function range($id, $length, $regular = false)
     {
-        return $length <= 0 ? $id : range($id, $id + $length - 1);
+        if ($length <= 1) {
+            if ($regular) {
+                return [$id];
+            } else {
+                return $id;
+            }
+        } else {
+            return range($id, $id + $length - 1);
+        }
     }
 
     public static function merge(array $source, array $target = [])
@@ -107,7 +115,7 @@ class Helper
     public static function makeWhereWithPrimaryKey($primaryKey, $length)
     {
         if ($length === 1) {
-            return static::standardise($primaryKey) . ' = ?';
+            return static::standardise($primaryKey) . '=?';
         } else {
             return static::standardise($primaryKey) . ' IN ' . static::fill($length);
         }

@@ -23,4 +23,7 @@ class Example extends Eorm
 
     // Primary key.
     protected static $primaryKey = 'id';
+
+    // Database server name.
+    protected static $server = 'eorm';
 }

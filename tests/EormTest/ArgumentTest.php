@@ -12,16 +12,28 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
+namespace EormTest;
 
-require __DIR__ . '/../vendor/autoload.php';
+use Eorm\Library\Argument;
+use PHPUnit\Framework\TestCase;
 
-// Connect MySQL.
-call_user_func(function () {
-    Eorm\Server::bind(
-        new PDO('mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8', 'root', ''),
-        'eorm'
-    );
-});
+class ArgumentTest extends TestCase
+{
+    public function testConstruct()
+    {
+        $this->assertEquals([], (new Argument())->toArray());
+        $this->assertEquals([1, '2'], (new Argument([1, 'a' => '2']))->toArray());
+    }
 
-// Load test model.
-require __DIR__ . '/../src/Models/Example.php';
+    public function testCount()
+    {
+        $this->assertEquals(0, (new Argument())->count());
+        $this->assertEquals(2, (new Argument([1, 2]))->count());
+    }
+
+    public function testPush()
+    {
+        $this->assertEquals([1], (new Argument())->push(1)->toArray());
+        $this->assertEquals([1, 2, 'a'], (new Argument([1, 2]))->push('a')->toArray());
+    }
+}
