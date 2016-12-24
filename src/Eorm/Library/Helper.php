@@ -33,6 +33,10 @@ class Helper
 
     public static function range($id, $length, $regular = false)
     {
+        if (!is_int($id)) {
+            $id = (int) $id;
+        }
+
         if ($length <= 1) {
             if ($regular) {
                 return [$id];

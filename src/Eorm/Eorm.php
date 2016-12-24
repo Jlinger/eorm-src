@@ -115,7 +115,7 @@ class Eorm
         );
 
         return static::find(
-            Helper::range((int) Server::insertId(static::getServer()), $rows)
+            Helper::range(Server::insertId(static::getServer()), $rows)
         );
     }
 
