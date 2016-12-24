@@ -16,7 +16,6 @@ namespace Eorm\Library;
 
 use Closure;
 use Eorm\Exceptions\EormException;
-use Eorm\Library\Helper;
 
 class Where
 {
@@ -26,7 +25,122 @@ class Where
 
     public function __construct($mode = true)
     {
-        $this->mode = $mode;
+        $this->mode($mode);
+    }
+
+    public function mode($mode)
+    {
+        $this->mode = (bool) $mode;
+        return $this;
+    }
+
+    public function clean()
+    {
+        $this->conditions = [];
+        return $this;
+    }
+
+    public function compare($field, $value, $option = true)
+    {
+        $field = Helper::standardise($field);
+
+        if (is_string($value) || is_numeric($value)) {
+            if (is_bool($option)) {
+                if ($option) {
+                    $this->pushCondition($field . '=?');
+                } else {
+                    $this->pushCondition($field . '!=?');
+                }
+            } elseif (is_string($option)) {
+                $option = trim($option);
+                if (!in_array($option, ['=', '!=', '>', '>=', '<', '<='])) {
+                    throw new EormException("Invalid conditional connection.");
+                }
+                $this->pushCondition($field . $option . '?');
+            } else {
+                throw new EormException("Invalid conditional connection.");
+            }
+            return $this->pushArgument($value);
+        }
+
+        if (is_array($value)) {
+            if ($length = count($value)) {
+                if ($length > 1) {
+                    if ($option) {
+                        $this->pushCondition($field . ' IN ' . Helper::fill($length));
+                    } else {
+                        $this->pushCondition($field . ' NOT IN ' . Helper::fill($length));
+                    }
+                } else {
+                    if ($option) {
+                        $this->pushCondition($field . '=?');
+                    } else {
+                        $this->pushCondition($field . '!=?');
+                    }
+                }
+                return $this->pushArgument($value);
+            } else {
+                throw new EormException('Condition value cannot be an empty array.');
+            }
+        }
+
+        if (is_null($value)) {
+            if ($option) {
+                return $this->pushCondition($field . ' IS NULL');
+            } else {
+                return $this->pushCondition($field . ' IS NOT NULL');
+            }
+        }
+
+        throw new EormException('Illegal condition value.');
+    }
+
+    public function like($field, $value, $option = true)
+    {
+        $field = Helper::standardise($field);
+
+        if (preg_match('/[%_]/', $value)) {
+            $connector = $option ? ' LIKE ?' : ' NOT LIKE ?';
+        } else {
+            $connector = $option ? '=?' : '!=?';
+        }
+
+        return $this->pushCondition($field . $connector)->pushArgument($value);
+    }
+
+    public function group(Closure $closure, $mode = false)
+    {
+        $where = new Where($mode);
+        $closure($where);
+
+        $this->pushCondition($where->toString(true));
+
+        $arguments = $where->getArgument();
+        if (!empty($arguments)) {
+            $this->pushArgument($arguments);
+        }
+
+        return $this;
+    }
+
+    public function getArgument()
+    {
+        return $this->arguments;
+    }
+
+    public function toString($brackets = false)
+    {
+        if (empty($this->conditions)) {
+            return '';
+        }
+
+        $condition = implode($this->mode ? ' AND ' : ' OR ', $this->conditions);
+
+        if ($brackets) {
+            return '(' . $condition . ')';
+        } else {
+            return $condition;
+        }
     }
 
     protected function pushArgument($argument)
@@ -46,61 +160,5 @@ class Where
     {
         $this->conditions[] = $condition;
         return $this;
-    }
-
-    public function compare($field, $value, $option = true)
-    {
-        $field = Helper::standardise($field);
-        if (is_string($value) || is_numeric($value)) {
-            if (is_bool($option)) {
-                $connector = $option ? '=' : '!=';
-            } elseif (is_string($option)) {
-                $connector = trim($option);
-                if (!in_array($connector, ['=', '!=', '>', '>=', '<', '<='])) {
-                    throw new EormException("Invalid condition connection.");
-                }
-            } else {
-                throw new EormException("Illegal condition connection.");
-            }
-            $this->pushCondition($field . $connector . '?')->pushArgument($value);
-        } elseif (is_array($value)) {
-            if (empty($value)) {
-                throw new EormException('Condition cannot be an empty array.');
-            }
-            $this->pushCondition(
-                $field . ($option ? ' IN ' : ' NOT IN ') . Helper::fill(count($value))
-            )->pushArgument($value);
-        } elseif (is_null($value)) {
-            $this->pushCondition($field . ($option ? ' IS NULL' : ' IS NOT NULL'));
-        } else {
-            throw new EormException('Illegal condition value.');
-        }
-
-        return $this;
-    }
-
-    public function like($field, $value, $option = true)
-    {
-        return $this->pushCondition(
-            Helper::standardise($field) . ($option ? ' LIKE ?' : ' NOT LIKE ?')
-        )->pushArgument($value);
-    }
-
-    public function group(Closure $closure, $mode = false)
-    {
-        $where = new Where($mode);
-        $closure($where);
-
-        return $this->pushCondition('(' . $where->toString() . ')')->pushArgument($where->getArgument());
-    }
-
-    public function getArgument()
-    {
-        return $this->arguments;
-    }
-
-    public function toString()
-    {
-        return empty($this->conditions) ? '' : implode($this->mode ? ' AND ' : ' OR ', $this->conditions);
     }
 }
