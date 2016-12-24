@@ -135,7 +135,7 @@ class Eorm
         $table    = Helper::standardise(static::getTable());
         $argument = (new Argument())->push($ids);
         $length   = $argument->count();
-        $where    = Helper::makeWhereWithPrimaryKey(static::getPrimaryKey(), $length);
+        $where    = Helper::makeWhereIn(static::getPrimaryKey(), $length);
 
         return Server::execute(
             static::getServer(),

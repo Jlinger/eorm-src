@@ -116,12 +116,14 @@ class Helper
         return [$argument, $rows, $columns];
     }
 
-    public static function makeWhereWithPrimaryKey($primaryKey, $length)
+    public static function makeWhereIn($column, $length)
     {
-        if ($length === 1) {
-            return static::standardise($primaryKey) . '=?';
+        $column = static::standardise($column);
+
+        if ($length <= 1) {
+            return $column . '=?';
         } else {
-            return static::standardise($primaryKey) . ' IN ' . static::fill($length);
+            return $column . ' IN ' . static::fill($length);
         }
     }
 }

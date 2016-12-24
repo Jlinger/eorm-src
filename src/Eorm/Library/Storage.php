@@ -75,7 +75,7 @@ class Storage
 
         if ($length = count($this->primaryKeys)) {
             $table   = Helper::standardise($this->table);
-            $where   = Helper::makeWhereWithPrimaryKey($this->primaryKey, $length);
+            $where   = Helper::makeWhereIn($this->primaryKey, $length);
             $changes = implode(',', array_map(function ($field) {
                 return Helper::standardise($field) . ' = ?';
             }, array_keys($this->changes)));
@@ -143,7 +143,7 @@ class Storage
     {
         if ($length = count($this->primaryKeys)) {
             $table = Helper::standardise($this->table);
-            $where = Helper::makeWhereWithPrimaryKey($this->primaryKey, $length);
+            $where = Helper::makeWhereIn($this->primaryKey, $length);
 
             $this->source = Server::execute(
                 $this->server,
@@ -165,7 +165,7 @@ class Storage
     {
         if ($length = count($this->primaryKeys)) {
             $table = Helper::standardise($this->table);
-            $where = Helper::makeWhereWithPrimaryKey($this->primaryKey, $length);
+            $where = Helper::makeWhereIn($this->primaryKey, $length);
 
             Server::execute(
                 $this->server,

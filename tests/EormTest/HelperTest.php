@@ -77,9 +77,9 @@ class HelperTest extends TestCase
         $this->assertEquals(3, $data[2]);
     }
 
-    public function testMakeWhereWithPrimaryKey()
+    public function testMakeWhereIn()
     {
-        $this->assertEquals('`id`=?', Helper::makeWhereWithPrimaryKey('id', 1));
-        $this->assertEquals('`id` IN (?,?)', Helper::makeWhereWithPrimaryKey('id', 2));
+        $this->assertEquals('`id`=?', Helper::makeWhereIn('id', 1));
+        $this->assertEquals('`id` IN (?,?)', Helper::makeWhereIn('id', 2));
     }
 }
