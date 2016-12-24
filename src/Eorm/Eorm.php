@@ -119,14 +119,24 @@ class Eorm
         );
     }
 
-    public static function count()
+    public static function count($column = null, $distinct = false)
     {
-        $field = Helper::standardise(static::getPrimaryKey());
+        if (is_null($column)) {
+            $column = static::getPrimaryKey();
+        }
+
+        $column = Helper::standardise($column);
+        if ($distinct) {
+            $field = "COUNT(DISTINCT {$column}) AS `total`";
+        } else {
+            $field = "COUNT({$column}) AS `total`";
+        }
+
         $table = Helper::standardise(static::getTable());
 
         return (int) Server::execute(
             static::getServer(),
-            "SELECT COUNT({$field}) AS `total` FROM {$table}"
+            "SELECT {$field} FROM {$table}"
         )->fetchAll(PDO::FETCH_ASSOC)[0]['total'];
     }
 
@@ -146,10 +156,8 @@ class Eorm
 
     public static function clean()
     {
-        Server::execute(
-            static::getServer(),
-            'TRUNCATE TABLE ' . Helper::standardise(static::getTable())
-        );
+        $table = Helper::standardise(static::getTable());
+        Server::execute(static::getServer(), 'TRUNCATE TABLE ' . $table);
     }
 
     public static function transaction(Closure $closure, $option = null)
