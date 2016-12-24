@@ -23,11 +23,11 @@ class Helper
         if (is_array($value)) {
             $temp = [];
             foreach ($value as $k => $v) {
-                $temp[$k] = '`' . $v . '`';
+                $temp[$k] = '`' . str_replace('`', '``', $v) . '`';
             }
             return $temp;
         } else {
-            return '`' . $value . '`';
+            return '`' . str_replace('`', '``', $value) . '`';
         }
     }
 
