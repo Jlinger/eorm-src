@@ -18,6 +18,16 @@ use Eorm\Exceptions\EormException;
 
 class Helper
 {
+    public static function format($value)
+    {
+        return '`' . str_replace('`', '``', $value) . '`';
+    }
+
+    public static function formatArray(array $values)
+    {
+        return array_map('self::format', $values);
+    }
+
     public static function standardise($value)
     {
         if (is_array($value)) {
