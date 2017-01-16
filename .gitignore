@@ -4,3 +4,4 @@ sftp-config.json
 vendor/
 phpunit.xml
 composer.lock
+test.lock
