@@ -43,7 +43,7 @@ class Eorm
         if (!isset(self::$actuators[$abstract])) {
 
             // Create model instanse.
-            $instanse = new static();
+            $instanse = new $abstract();
 
             // Fetch model class infomation.
             list($server, $table, $primaryKey) = call_user_func(
