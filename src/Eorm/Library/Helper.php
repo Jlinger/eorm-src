@@ -28,23 +28,28 @@ class Helper
         return array_map('self::format', $values);
     }
 
-    public static function standardise($value)
+    public static function toArray($values)
     {
-        if (is_array($value)) {
-            $temp = [];
-            foreach ($value as $k => $v) {
-                $temp[$k] = '`' . str_replace('`', '``', $v) . '`';
+        if (is_array($values)) {
+            if (empty($values)) {
+                return $values;
+            } else {
+                return array_values($values);
             }
-            return $temp;
         } else {
-            return '`' . str_replace('`', '``', $value) . '`';
+            return [$values];
         }
+    }
+
+    public static function join(array $elements)
+    {
+        return implode(',', $elements);
     }
 
     public static function range($id, $length, $regular = false)
     {
         if (!is_int($id)) {
-            $id = (int) $id;
+            $id = intval($id);
         }
 
         if ($length <= 1) {
@@ -58,20 +63,9 @@ class Helper
         }
     }
 
-    public static function merge(array $source, array $target = [])
-    {
-        if (!empty($source)) {
-            foreach ($source as $value) {
-                $target[] = $value;
-            }
-        }
-
-        return $target;
-    }
-
     public static function fill($length, $element = '?', $brackets = true)
     {
-        $sequence = implode(',', array_fill(0, $length, $element));
+        $sequence = static::join(array_fill(0, $length, $element));
         if ($brackets) {
             return '(' . $sequence . ')';
         } else {
@@ -84,56 +78,11 @@ class Helper
         if (is_string($value) || is_numeric($value)) {
             return $value;
         } elseif (is_bool($value)) {
-            return (int) $value;
+            return $value ? 1 : 0;
         } elseif (is_null($value)) {
             return '';
         } else {
             throw new EormException('Data can not be converted into a scalar.');
-        }
-    }
-
-    public static function mergeField(array $field)
-    {
-        return implode(',', static::standardise($field));
-    }
-
-    public static function makeInsertArray(array $source)
-    {
-        $source = array_map(
-            function ($column) {
-                return (array) $column;
-            },
-            $source
-        );
-
-        $rows   = max(array_map('count', $source));
-        $source = array_map(
-            function ($column) use ($rows) {
-                return array_pad($column, $rows, end($column));
-            },
-            $source
-        );
-
-        $columns  = count($source);
-        $argument = new Argument();
-        array_unshift($source, function () use ($argument) {
-            $argument->push(func_get_args());
-            return true;
-        });
-
-        call_user_func_array('array_map', $source);
-
-        return [$argument, $rows, $columns];
-    }
-
-    public static function makeWhereIn($column, $length)
-    {
-        $column = static::standardise($column);
-
-        if ($length <= 1) {
-            return $column . '=?';
-        } else {
-            return $column . ' IN ' . static::fill($length);
         }
     }
 }

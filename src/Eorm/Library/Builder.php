@@ -51,6 +51,22 @@ final class Builder
         }
     }
 
+    public static function normalizeInsertRows(array $columns)
+    {
+        $columns = array_map([Helper::class, 'toArray'], $columns);
+        $maximum = max(array_map('count', $columns));
+        if ($maximum === 1) {
+            return $columns;
+        } else {
+            return array_map(
+                function ($column) use ($maximum) {
+                    return array_pad($column, $maximum, end($column));
+                },
+                $columns
+            );
+        }
+    }
+
     /**
      * Create the SQL statement where part.
      *

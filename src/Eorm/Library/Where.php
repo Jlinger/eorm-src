@@ -130,10 +130,6 @@ class Where
 
     public function toString($brackets = false)
     {
-        if (empty($this->conditions)) {
-            return '';
-        }
-
         $condition = implode($this->mode ? ' AND ' : ' OR ', $this->conditions);
 
         if ($brackets) {

@@ -14,39 +14,65 @@
  */
 namespace Eorm\Library;
 
+/**
+ *
+ */
 class Argument
 {
-    protected $arguments = [];
+    /**
+     * [$stack description]
+     * @var array
+     */
+    protected $stack = [];
 
-    public function __construct(array $arguments = [])
+    /**
+     * [__construct description]
+     * @param array $values [description]
+     */
+    public function __construct($values = [])
     {
-        if (!empty($arguments)) {
-            foreach ($arguments as $value) {
-                $this->arguments[] = Helper::toScalar($value);
-            }
-        }
+        $this->push($values);
     }
 
-    public function push($value)
+    /**
+     * [push description]
+     * @param  [type] $values [description]
+     * @return [type]         [description]
+     */
+    public function push($values)
     {
-        if (is_array($value)) {
-            foreach ($value as $v) {
-                $this->arguments[] = Helper::toScalar($v);
-            }
-        } else {
-            $this->arguments[] = Helper::toScalar($value);
+        foreach (Helper::toArray($values) as $value) {
+            $this->stack[] = Helper::toScalar($value);
         }
 
         return $this;
     }
 
+    /**
+     * [count description]
+     * @return [type] [description]
+     */
     public function count()
     {
-        return count($this->arguments);
+        return count($this->stack);
     }
 
+    /**
+     * [toArray description]
+     * @return [type] [description]
+     */
     public function toArray()
     {
-        return $this->arguments;
+        return $this->stack;
+    }
+
+    /**
+     * [clean description]
+     * @return [type] [description]
+     */
+    public function clean()
+    {
+        $this->stack = [];
+        return $this;
     }
 }
