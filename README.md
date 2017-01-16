@@ -37,11 +37,15 @@ class Users extends Eorm\Eorm
 {
     // The default table name is the model class name (users).
     // This is an optional attribute.
-    protected static $table = null;
+    protected $table = null;
 
     // The default auto increment primary key is 'id'.
     // This is an optional attribute.
-    protected static $primaryKey = 'id';
+    protected $primaryKey = 'id';
+
+    // The default database server name.
+    // This is an optional attribute.
+    protected $server = 'eorm';
 }
 ```
 
