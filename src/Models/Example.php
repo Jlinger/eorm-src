@@ -19,11 +19,11 @@ use Eorm\Eorm;
 class Example extends Eorm
 {
     // Table name.
-    protected static $table = null;
+    protected $table = null;
 
     // Primary key.
-    protected static $primaryKey = 'id';
+    protected $primaryKey = 'id';
 
     // Database server name.
-    protected static $server = 'eorm';
+    protected $server = 'eorm';
 }
