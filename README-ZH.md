@@ -15,21 +15,19 @@
 
 # 示例 #
 
-创建一个到数据库的连接。
+添加一个数据库连接到 Eorm\Server 类。
 
 ```php
-$username = 'eorm';
-$password = 'eorm';
-$dsn = 'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8';
+Eorm\Server::add(
+    function () {
+        $username = 'eorm';
+        $password = 'eorm';
+        $dsn      = 'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8';
 
-$connect = new PDO($dsn, $username, $password);
-```
-
-绑定数据库连接到 Eorm\Server 类。
-
-```php
-Eorm\Server::bind($connect);
-
+        return new PDO($dsn, $username, $password);
+    },
+    'eorm' // Server name.
+);
 ```
 
 创建表的模型。

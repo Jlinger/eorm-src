@@ -15,21 +15,19 @@
 
 # Example #
 
-Create a database connection.
+Add connection to Eorm\Server.
 
 ```php
-$username = 'eorm';
-$password = 'eorm';
-$dsn = 'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8';
+Eorm\Server::add(
+    function () {
+        $username = 'eorm';
+        $password = 'eorm';
+        $dsn      = 'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8';
 
-$connect = new PDO($dsn, $username, $password);
-```
-
-Bind the connection to Eorm\Server.
-
-```php
-Eorm\Server::bind($connect);
-
+        return new PDO($dsn, $username, $password);
+    },
+    'eorm' // Server name.
+);
 ```
 
 Create a table model.
