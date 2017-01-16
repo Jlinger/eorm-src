@@ -16,10 +16,12 @@ namespace Eorm;
 
 use Closure;
 use Eorm\Exceptions\EormException;
+use Eorm\Library\Actuator;
 use Eorm\Library\Argument;
 use Eorm\Library\Builder;
 use Eorm\Library\Helper;
 use Eorm\Library\Query;
+use Eorm\Library\Storage;
 use Eorm\Library\Where;
 use Exception;
 use PDO;
@@ -149,7 +151,7 @@ class Eorm
         );
     }
 
-    public static function insert(array $rows)
+    public static function insert(array $columns)
     {
         $actuator = self::getActuator();
         $field    = Builder::makeField(array_keys($columns));
@@ -201,6 +203,8 @@ class Eorm
     {
         $actuator = self::getActuator();
         $actuator->fetch('TRUNCATE TABLE ' . $actuator->getTable());
+
+        return true;
     }
 
     public static function transaction(Closure $closure, $option = null)
