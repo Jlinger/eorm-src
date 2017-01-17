@@ -42,50 +42,30 @@ class Eorm
 
         if (!isset(self::$actuators[$abstract])) {
 
-            // Create model instanse.
-            // $instanse = new $abstract();
-
             list($server, $table, $primaryKey) = call_user_func(function ($abstract) {
                 $reflection = new \ReflectionClass($abstract);
-                $server     = '';
-                $table      = '';
-                $primaryKey = '';
+                $props      = [];
                 foreach ($reflection->getProperties(\ReflectionProperty::IS_PROTECTED) as $prop) {
-                    switch (strtolower($prop->getName())) {
-                        case 'table':
-                            $prop->setAccessible(true);
-                            $table = $prop->getValue(new $abstract());
-                            if (is_null($table)) {
-                                $temp  = explode('\\', $abstract);
-                                $table = strtolower(end($temp));
-                            }
-                            break;
-                        case 'primarykey':
-                            $prop->setAccessible(true);
-                            $primaryKey = $prop->getValue(new $abstract());
-                            break;
-                        case 'server':
-                            $prop->setAccessible(true);
-                            $server = $prop->getValue(new $abstract());
-                            break;
+                    $name = strtolower($prop->getName());
+                    if (in_array($name, ['table', 'primarykey', 'server'])) {
+                        $prop->setAccessible(true);
+                        $props[$name] = $prop;
                     }
                 }
 
-                return [$server, $table, $primaryKey];
+                $instanse = new $abstract();
+                $values   = [];
+                foreach ($props as $name => $prop) {
+                    $values[$name] = $prop->getValue($instanse);
+                }
+
+                if (is_null($values['table'])) {
+                    $temp            = explode('\\', $abstract);
+                    $values['table'] = strtolower(end($temp));
+                }
+
+                return [$values['server'], $values['table'], $values['primarykey']];
             }, $abstract);
-
-            // Fetch model class infomation.
-            // list($server, $table, $primaryKey) = call_user_func(
-            //     Closure::bind(function ($abstract) {
-            //         if (is_null($this->table)) {
-            //             $temp        = explode('\\', $abstract);
-            //             $this->table = strtolower(end($temp));
-            //         }
-
-            //         return [$this->server, $this->table, $this->primaryKey];
-            //     }, $instanse, $instanse),
-            //     $abstract
-            // );
 
             // Create model actuator instanse.
             self::$actuators[$abstract] = new Actuator($server, $table, $primaryKey);
