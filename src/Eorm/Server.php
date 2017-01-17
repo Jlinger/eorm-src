@@ -30,6 +30,8 @@ class Server
      */
     private static $connections = [];
 
+    private static $hooks = [];
+
     /**
      * Add a connection to the connection stack.
      * If you use a closure to create a connection, make sure that the closure must return a PDO object.
@@ -45,6 +47,19 @@ class Server
         } else {
             throw new EormException("The connection must be a PDO object or a Closure.");
         }
+    }
+
+    /**
+     * [hook description]
+     * @param  Closure $action    [description]
+     * @param  [type]  $parameter [description]
+     * @return [type]             [description]
+     */
+    public static function hook(Closure $action, $parameter = null)
+    {
+        self::$hooks[] = [$action, $parameter];
+
+        return true;
     }
 
     /**
@@ -70,5 +85,24 @@ class Server
         } else {
             throw new EormException("The connection '{$name}' does not exist.");
         }
+    }
+
+    /**
+     * [callHooks description]
+     * @param  [type] $statement [description]
+     * @param  array  $arguments [description]
+     * @param  [type] $server    [description]
+     * @param  [type] $table     [description]
+     * @return [type]            [description]
+     */
+    protected function callHooks($statement, array $arguments, $server, $table)
+    {
+        if (!empty(self::$hooks)) {
+            foreach (self::$hooks as $hook) {
+                call_user_func($hook[0], $statement, $arguments, $server, $table, $hook[1]);
+            }
+        }
+
+        return $this;
     }
 }
