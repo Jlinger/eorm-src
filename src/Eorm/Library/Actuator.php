@@ -46,13 +46,6 @@ final class Actuator extends Server
     private $primaryKey;
 
     /**
-     * The PDO statement object stack.
-     *
-     * @var array
-     */
-    private $statements = [];
-
-    /**
      * The MySQL database server connection.
      *
      * @var PDO
@@ -180,27 +173,20 @@ final class Actuator extends Server
      */
     private function prepare($sql)
     {
-        $key = md5($sql);
-        if (isset($this->statements[$key])) {
-            $this->statements[$key]->closeCursor();
-        } else {
-            try {
-                $statement = $this->connection()->prepare($sql);
-            } catch (\Exception $e) {
-                throw new EormException("Create PDO statement object error: {$e->getMessage()}.");
-            } catch (\Throwable $e) {
-                throw new EormException("Create PDO statement object error: {$e->getMessage()}.");
-            }
-
-            if (!$statement) {
-                $message = $this->connection()->errorInfo()[2];
-                throw new EormException("Create PDO statement object error: {$message}.");
-            }
-
-            $this->statements[$key] = $statement;
+        try {
+            $statement = $this->connection()->prepare($sql);
+        } catch (\Exception $e) {
+            throw new EormException("Create PDO statement object error: {$e->getMessage()}.");
+        } catch (\Throwable $e) {
+            throw new EormException("Create PDO statement object error: {$e->getMessage()}.");
         }
 
-        return $this->statements[$key];
+        if (!$statement) {
+            $message = $this->connection()->errorInfo()[2];
+            throw new EormException("Create PDO statement object error: {$message}.");
+        }
+
+        return $statement;
     }
 
     /**
