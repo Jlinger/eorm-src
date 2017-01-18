@@ -36,38 +36,9 @@ class Eorm
 
     private static function getActuator()
     {
-        // Model class name.
         $abstract = static::class;
-
         if (!isset(self::$actuators[$abstract])) {
-
-            list($server, $table, $primaryKey) = call_user_func(function ($abstract) {
-                $reflection = new \ReflectionClass($abstract);
-                $props      = [];
-                foreach ($reflection->getProperties(\ReflectionProperty::IS_PROTECTED) as $prop) {
-                    $name = strtolower($prop->getName());
-                    if (in_array($name, ['table', 'primarykey', 'server'])) {
-                        $prop->setAccessible(true);
-                        $props[$name] = $prop;
-                    }
-                }
-
-                $instanse = new $abstract();
-                $values   = [];
-                foreach ($props as $name => $prop) {
-                    $values[$name] = $prop->getValue($instanse);
-                }
-
-                if (is_null($values['table'])) {
-                    $temp            = explode('\\', $abstract);
-                    $values['table'] = strtolower(end($temp));
-                }
-
-                return [$values['server'], $values['table'], $values['primarykey']];
-            }, $abstract);
-
-            // Create model actuator instanse.
-            self::$actuators[$abstract] = new Actuator($server, $table, $primaryKey);
+            self::$actuators[$abstract] = new Actuator($abstract);
         }
 
         return self::$actuators[$abstract];

@@ -55,13 +55,24 @@ final class Actuator extends Server
     /**
      * Initialization actuator instanse.
      *
-     * @param  string  $server      The MySQL database server connection name.
-     * @param  string  $table       The table name.
-     * @param  string  $primaryKey  The table primary key name.
-     * @return void
+     * @param string  $abstract  Model class name.
      */
-    public function __construct($server, $table, $primaryKey)
+    public function __construct($abstract)
     {
+        $instanse = new $abstract();
+
+        list($server, $table, $primaryKey) = call_user_func(
+            Closure::bind(function ($abstract) {
+                if (is_null($this->table)) {
+                    $temp        = explode('\\', $abstract);
+                    $this->table = strtolower(end($temp));
+                }
+
+                return [$this->server, $this->table, $this->primaryKey];
+            }, $instanse, $instanse),
+            $abstract
+        );
+
         $this->server     = $server;
         $this->table      = $table;
         $this->primaryKey = $primaryKey;
