@@ -7,125 +7,102 @@
  *+------------------------------------------------------------------------------------------------+
  *| @license   MIT                                                                                 |
  *| @link      https://www.edoger.com/                                                             |
- *| @copyright Copyright (c) 2016 Qingshan Luo                                                     |
+ *| @copyright Copyright (c) 2016 - 2017 Qingshan Luo                                              |
  *+------------------------------------------------------------------------------------------------+
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
 namespace Eorm;
 
+use Closure;
 use Eorm\Exceptions\EormException;
-use Eorm\Library\Argument;
-use Exception;
 use PDO;
-use Throwable;
 
+/**
+ * Edoger ORM Database Server Connection Manager Class.
+ */
 class Server
 {
-    protected static $servers = [];
+    /**
+     * The MySQL database server connections.
+     *
+     * @var array
+     */
+    private static $connections = [];
 
-    public static function bind(PDO $pdo, $name = 'default')
+    private static $hooks = [];
+
+    /**
+     * Add a connection to the connection stack.
+     * If you use a closure to create a connection, make sure that the closure must return a PDO object.
+     *
+     * @param  PDO|Closure  $connection  Connected PDO connection object or a Closure.
+     * @param  string       $name        The MySQL database server connection name.
+     * @return void
+     */
+    public static function add($connection, $name = 'default')
     {
-        static::$servers[$name] = $pdo;
+        if ($connection instanceof PDO || $connection instanceof Closure) {
+            self::$connections[$name] = $connection;
+        } else {
+            throw new EormException("The connection must be a PDO object or a Closure.");
+        }
+    }
+
+    /**
+     * [hook description]
+     * @param  Closure $action    [description]
+     * @param  [type]  $parameter [description]
+     * @return [type]             [description]
+     */
+    public static function hook(Closure $action, $parameter = null)
+    {
+        self::$hooks[] = [$action, $parameter];
+
         return true;
     }
 
-    public static function execute($name, $sql, Argument $argument = null)
+    /**
+     * Get MySQL database server connection by name.
+     *
+     * @param  string  $name  The MySQL database server connection name.
+     * @return PDO
+     */
+    protected function getConnection($name)
     {
-        if (!isset(static::$servers[$name])) {
-            throw new EormException(
-                "Server connection does not exist, with name '{$name}'."
-            );
-        }
-
-        try {
-            $stmt = static::$servers[$name]->prepare($sql);
-        } catch (Exception $e) {
-            throw new EormException('Execution error: ' . $e->getMessage());
-        } catch (Throwable $e) {
-            throw new EormException('Execution error: ' . $e->getMessage());
-        }
-
-        if (!$stmt) {
-            throw new EormException(
-                'Execution error: ' . implode(':', static::$servers[$name]->errorInfo())
-            );
-        }
-
-        if (!$stmt->execute($argument ? $argument->toArray() : [])) {
-            throw new EormException(
-                'Execution error: ' . implode(':', $stmt->errorInfo())
-            );
-        }
-
-        return $stmt;
-    }
-
-    public static function insertId($name)
-    {
-        $id = '';
-
-        if (isset(static::$servers[$name])) {
-            $id = static::$servers[$name]->lastInsertId();
-        }
-
-        return $id;
-    }
-
-    public static function beginTransaction($name)
-    {
-        if (!isset(static::$servers[$name])) {
-            return false;
-        }
-
-        $pdo = static::$servers[$name];
-
-        if ($pdo->inTransaction()) {
-            return true;
-        } else {
-            return $pdo->beginTransaction();
-        }
-    }
-
-    public static function commit($name)
-    {
-        if (!isset(static::$servers[$name])) {
-            return false;
-        }
-
-        $pdo = static::$servers[$name];
-
-        if ($pdo->inTransaction()) {
-            if ($pdo->commit()) {
-                return true;
+        if (isset(self::$connections[$name])) {
+            if (self::$connections[$name] instanceof PDO) {
+                return self::$connections[$name];
             } else {
-                if ($pdo->inTransaction()) {
-                    $pdo->rollBack();
+                $connection = call_user_func(self::$connections[$name]);
+                if ($connection instanceof PDO) {
+                    self::$connections[$name] = $connection;
+                    return $connection;
+                } else {
+                    throw new EormException("The connection Closure must return a PDO object.");
                 }
-
-                return false;
             }
         } else {
-            return true;
+            throw new EormException("The connection '{$name}' does not exist.");
         }
     }
 
-    public static function rollBack($name)
+    /**
+     * [callHooks description]
+     * @param  [type] $statement [description]
+     * @param  array  $arguments [description]
+     * @param  [type] $server    [description]
+     * @param  [type] $table     [description]
+     * @return [type]            [description]
+     */
+    protected function callHooks($statement, array $arguments, $server, $table)
     {
-        if (!isset(static::$servers[$name])) {
-            return false;
-        }
-
-        $pdo = static::$servers[$name];
-
-        if ($pdo->inTransaction()) {
-            if ($pdo->rollBack()) {
-                return true;
-            } else {
-                return false;
+        if (!empty(self::$hooks)) {
+            foreach (self::$hooks as $hook) {
+                call_user_func($hook[0], $statement, $arguments, $server, $table, $hook[1]);
             }
-        } else {
-            return true;
         }
+
+        return $this;
     }
 }

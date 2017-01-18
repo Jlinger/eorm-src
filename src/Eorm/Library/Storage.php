@@ -14,28 +14,23 @@
  */
 namespace Eorm\Library;
 
-use Eorm\Exceptions\EormException;
-use Eorm\Server;
 use PDO;
+use PDOStatement;
 
 class Storage
 {
-    protected $source;
-    protected $table;
-    protected $primaryKey;
-    protected $server;
-    protected $primaryKeys = [];
-    protected $changes     = [];
+    protected $actuator;
+    protected $source  = [];
+    protected $ids     = [];
+    protected $changes = [];
 
-    public function __construct(array $source, $table, $primaryKey, $server)
+    public function __construct(PDOStatement $statement, Actuator $actuator)
     {
-        $this->source     = $source;
-        $this->table      = $table;
-        $this->primaryKey = $primaryKey;
-        $this->server     = $server;
+        $this->source   = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $this->actuator = $actuator;
 
-        if (!empty($source)) {
-            $this->primaryKeys = array_column($source, $primaryKey);
+        if (!$this->isEmpty()) {
+            $this->ids = array_column($this->source, $actuator->getPrimaryKey(false));
         }
     }
 
@@ -54,108 +49,127 @@ class Storage
         return count($this->source);
     }
 
-    public function set($target, $value = null)
+    public function set($column, $target = null)
     {
-        if (is_array($target)) {
-            foreach ($target as $k => $v) {
-                $this->changes[$k] = $v;
+        if (is_array($column)) {
+            foreach ($column as $key => $value) {
+                $this->changes[$key] = $value;
             }
         } else {
-            $this->changes[$target] = $value;
+            $this->changes[$column] = $target;
         }
 
         return $this;
     }
 
-    public function save()
+    public function save($create = false)
     {
         if (empty($this->changes)) {
             return $this;
         }
 
-        if ($length = count($this->primaryKeys)) {
-            $table   = Helper::standardise($this->table);
-            $where   = Helper::makeWhereWithPrimaryKey($this->primaryKey, $length);
-            $changes = implode(',', array_map(function ($field) {
-                return Helper::standardise($field) . ' = ?';
-            }, array_keys($this->changes)));
+        $count = count($this->ids);
 
-            Server::execute(
-                $this->server,
-                "UPDATE {$table} SET {$changes} WHERE {$where} LIMIT {$length}",
-                (new Argument($this->changes))->push($this->primaryKeys)
+        if ($count) {
+            $table    = $this->actuator->getTable();
+            $where    = Builder::makeWhereIn($this->actuator->getPrimaryKey(false), $count);
+            $argument = new Argument($this->changes);
+            $changes  = implode(',', array_map(
+                function ($column) {
+                    return Helper::format($column) . '=?';
+                },
+                array_keys($this->changes)
+            ));
+
+            $this->actuator->fetch(
+                "UPDATE {$table} SET {$changes} WHERE {$where} LIMIT {$count}",
+                $argument->push($this->ids)
             );
 
             $this->changes = [];
             return $this->reload();
         } else {
-            return $this->create($this->changes);
+            if ($create) {
+                $this->insert($this->changes);
+            }
+
+            $this->changes = [];
+            return $this;
         }
     }
 
-    public function replace()
+    public function replace($create = false)
     {
         if (empty($this->changes)) {
             return $this;
         }
 
-        if ($length = count($this->primaryKeys)) {
-            $source = array_map(
-                function ($row) {
-                    unset($row[$this->primaryKey]);
+        $count = count($this->ids);
+
+        if ($count) {
+            $primaryKey = $this->actuator->getPrimaryKey(false);
+            $source     = array_map(
+                function ($row) use ($primaryKey) {
                     foreach ($this->changes as $column => $value) {
                         $row[$column] = $value;
                     }
+
+                    unset($row[$primaryKey]);
+
                     return $row;
                 },
                 $this->source
             );
 
-            $rows     = count($source);
-            $columns  = count(reset($source));
-            $field    = Helper::mergeField(array_keys(reset($source)));
-            $table    = Helper::standardise($this->table);
-            $values   = Helper::fill($rows, Helper::fill($columns), false);
-            $argument = new Argument();
+            $field    = Builder::makeField(array_keys(reset($source)));
+            $table    = $this->actuator->getTable();
+            $rowCount = count($source);
+            $values   = Helper::fill($rowCount, Helper::fill(count(reset($source))), false);
+            $argument = new Argument($this->ids);
+            $where    = Builder::makeWhereIn($primaryKey, $count);
 
+            $this->actuator->fetch("DELETE FROM {$table} WHERE {$where} LIMIT {$count}", $argument);
+
+            $argument->clean();
             foreach ($source as $row) {
                 $argument->push($row);
             }
 
-            $this->changes = [];
-            $this->delete();
+            $this->actuator->fetch("INSERT INTO {$table} ({$field}) VALUES {$values}", $argument);
 
-            Server::execute(
-                $this->server,
-                "INSERT INTO {$table} ({$field}) VALUES {$values}",
-                $argument
-            );
-
-            $this->primaryKeys = Helper::range((int) Server::insertId($this->server), $rows, true);
+            $this->ids = Helper::range($this->actuator->lastId(), $rowCount);
 
             return $this->reload();
         } else {
-            return $this->create($this->changes);
+            if ($create) {
+                $this->insert($this->changes);
+            }
+
+            $this->changes = [];
+            return $this;
         }
     }
 
     public function reload()
     {
-        if ($length = count($this->primaryKeys)) {
-            $table = Helper::standardise($this->table);
-            $where = Helper::makeWhereWithPrimaryKey($this->primaryKey, $length);
+        $count = count($this->ids);
 
-            $this->source = Server::execute(
-                $this->server,
-                "SELECT * FROM {$table} WHERE {$where} LIMIT {$length}",
-                new Argument($this->primaryKeys)
-            )->fetchAll(PDO::FETCH_ASSOC);
+        if ($count) {
+            $table = $this->actuator->getTable();
+            $where = Builder::makeWhereIn($this->actuator->getPrimaryKey(false), $count);
+
+            $this->source = $this
+                ->actuator
+                ->fetch("SELECT * FROM {$table} WHERE {$where} LIMIT {$count}", new Argument($this->ids))
+                ->fetchAll(PDO::FETCH_ASSOC);
 
             if ($this->isEmpty()) {
-                $this->primaryKeys = [];
+                $this->ids = [];
             } else {
-                $this->primaryKeys = array_column($this->source, $this->primaryKey);
+                $this->ids = array_column($this->source, $this->actuator->getPrimaryKey(false));
             }
+        } else {
+            $this->source = [];
         }
 
         return $this;
@@ -163,45 +177,44 @@ class Storage
 
     public function delete()
     {
-        if ($length = count($this->primaryKeys)) {
-            $table = Helper::standardise($this->table);
-            $where = Helper::makeWhereWithPrimaryKey($this->primaryKey, $length);
+        $count = count($this->ids);
 
-            Server::execute(
-                $this->server,
-                "DELETE FROM {$table} WHERE {$where} LIMIT {$length}",
-                new Argument($this->primaryKeys)
+        if ($count) {
+            $table = $this->actuator->getTable();
+            $where = Builder::makeWhereIn($this->actuator->getPrimaryKey(false), $count);
+
+            $this->actuator->fetch(
+                "DELETE FROM {$table} WHERE {$where} LIMIT {$count}",
+                new Argument($this->ids)
             );
 
-            $this->primaryKeys = [];
+            $this->ids = [];
         }
 
         return $this;
     }
 
-    public function create(array $data)
+    public function insert(array $columns)
     {
-        if (empty($data)) {
-            throw new EormException('The database table cannot be inserted into the empty data.');
-        }
+        $field    = Builder::makeField(array_keys($columns));
+        $table    = $this->actuator->getTable();
+        $columns  = Builder::normalizeInsertRows(array_values($columns));
+        $rowCount = count(reset($columns));
+        $argument = new Argument();
+        $unit     = Helper::fill(count($columns));
+        $values   = implode(',', array_map(function (...$row) use ($argument, $unit) {
+            $argument->push($row);
+            return $unit;
+        }, ...$columns));
 
-        $field = Helper::mergeField(array_keys($data));
-        $table = Helper::standardise($this->table);
+        $this->actuator->fetch("INSERT INTO {$table} ({$field}) VALUES {$values}", $argument);
 
-        list($argument, $rows, $columns) = Helper::makeInsertArray(array_values($data));
+        return $this->push(Helper::range($this->actuator->lastId(), $rowCount));
+    }
 
-        $values = Helper::fill($rows, Helper::fill($columns), false);
-
-        Server::execute(
-            $this->server,
-            "INSERT INTO {$table} ({$field}) VALUES {$values}",
-            $argument
-        );
-
-        $this->primaryKeys = Helper::merge(
-            Helper::range((int) Server::insertId($this->server), $rows, true),
-            $this->primaryKeys
-        );
+    public function push($ids)
+    {
+        array_push($this->ids, ...Helper::toArray($ids));
 
         return $this->reload();
     }

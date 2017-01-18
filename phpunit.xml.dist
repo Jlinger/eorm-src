@@ -5,13 +5,7 @@
          backupGlobals="false"
          verbose="true">
     <testsuites>
-        <testsuite name="common">
-            <file>tests/EormTest/ArgumentTest.php</file>
-            <file>tests/EormTest/HelperTest.php</file>
-            <file>tests/EormTest/ResultTest.php</file>
-            <file>tests/EormTest/WhereTest.php</file>
-        </testsuite>
-        <testsuite name="database">
+        <testsuite name="eorm">
             <file>tests/EormTest/EormTest.php</file>
         </testsuite>
     </testsuites>

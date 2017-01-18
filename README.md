@@ -15,21 +15,19 @@
 
 # Example #
 
-Create a database connection.
+Add connection to Eorm\Server.
 
 ```php
-$username = 'eorm';
-$password = 'eorm';
-$dsn = 'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8';
+Eorm\Server::add(
+    function () {
+        $username = 'eorm';
+        $password = 'eorm';
+        $dsn      = 'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8';
 
-$connect = new PDO($dsn, $username, $password);
-```
-
-Bind the connection to Eorm\Server.
-
-```php
-Eorm\Server::bind($connect);
-
+        return new PDO($dsn, $username, $password);
+    },
+    'eorm' // Server name.
+);
 ```
 
 Create a table model.
@@ -39,11 +37,15 @@ class Users extends Eorm\Eorm
 {
     // The default table name is the model class name (users).
     // This is an optional attribute.
-    protected static $table = null;
+    protected $table = null;
 
     // The default auto increment primary key is 'id'.
     // This is an optional attribute.
-    protected static $primaryKey = 'id';
+    protected $primaryKey = 'id';
+
+    // The default database server name.
+    // This is an optional attribute.
+    protected $server = 'eorm';
 }
 ```
 

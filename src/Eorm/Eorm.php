@@ -7,7 +7,7 @@
  *+------------------------------------------------------------------------------------------------+
  *| @license   MIT                                                                                 |
  *| @link      https://www.edoger.com/                                                             |
- *| @copyright Copyright (c) 2016 Qingshan Luo                                                     |
+ *| @copyright Copyright (c) 2016 - 2017 Qingshan Luo                                                     |
  *+------------------------------------------------------------------------------------------------+
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
@@ -15,164 +15,164 @@
 namespace Eorm;
 
 use Closure;
-use Eorm\Exceptions\EormException;
+use Eorm\Library\Actuator;
 use Eorm\Library\Argument;
+use Eorm\Library\Builder;
 use Eorm\Library\Helper;
 use Eorm\Library\Query;
+use Eorm\Library\Storage;
 use Eorm\Library\Where;
-use Exception;
-use PDO;
-use Throwable;
 
+/**
+ *
+ */
 class Eorm
 {
-    protected static $table      = null;
-    protected static $primaryKey = 'id';
-    protected static $server     = 'default';
+    private static $actuators = [];
+
+    protected $table      = null;
+    protected $primaryKey = 'id';
+    protected $server     = 'default';
+
+    private static function getActuator()
+    {
+        $abstract = static::class;
+        if (!isset(self::$actuators[$abstract])) {
+            self::$actuators[$abstract] = new Actuator($abstract);
+        }
+
+        return self::$actuators[$abstract];
+    }
 
     public static function getTable()
     {
-        if (is_null(static::$table)) {
-            $splitClassNames = explode('\\', static::class);
-            static::$table   = strtolower(end($splitClassNames));
-        }
-
-        return static::$table;
+        return self::getActuator()->getTable(false);
     }
 
     public static function getPrimaryKey()
     {
-        return static::$primaryKey;
-    }
-
-    public static function getServer()
-    {
-        return static::$server;
+        return self::getActuator()->getPrimaryKey(false);
     }
 
     public static function where($target, $value = null, $option = true, $mode = true)
     {
-        if (is_bool($target)) {
-            $where = new Where($target);
-        } elseif ($target instanceof Closure) {
-            $where = new Where(is_bool($value) ? $value : true);
-            $target($where);
-        } else {
-            $where = (new Where($mode))->compare($target, $value, $option);
-        }
-
-        return new Query(
-            $where,
-            static::getTable(),
-            static::getPrimaryKey(),
-            static::getServer()
-        );
+        return static::query($mode)->where($target, $value, $option);
     }
 
     public static function find($ids)
     {
-        if (is_array($ids)) {
-            $limit = count($ids);
-            if ($limit === 1) {
-                $ids = reset($ids);
-            }
-        } else {
-            $limit = 1;
-        }
+        $actuator = self::getActuator();
+        $argument = new Argument($ids);
+        $count    = $argument->count();
+        $table    = $actuator->getTable();
+        $where    = Builder::makeWhereIn($actuator->getPrimaryKey(false), $count);
 
-        return static::where(static::getPrimaryKey(), $ids)->limit($limit)->get();
+        return new Storage(
+            $actuator->fetch("SELECT * FROM {$table} WHERE {$where} LIMIT {$count}", $argument),
+            $actuator
+        );
     }
 
-    public static function query()
+    public static function query($mode = true)
     {
-        return static::where(true);
+        return new Query(self::getActuator(), $mode);
     }
 
     public static function all()
     {
-        return static::query()->get();
-    }
+        $actuator = self::getActuator();
+        $table    = $actuator->getTable();
 
-    public static function create(array $data)
-    {
-        if (empty($data)) {
-            throw new EormException(
-                'The database table cannot be inserted into the empty data.'
-            );
-        }
-
-        $field = Helper::mergeField(array_keys($data));
-        $table = Helper::standardise(static::getTable());
-
-        list($argument, $rows, $columns) = Helper::makeInsertArray(array_values($data));
-
-        $values = Helper::fill($rows, Helper::fill($columns), false);
-
-        Server::execute(
-            static::getServer(),
-            "INSERT INTO {$table} ({$field}) VALUES {$values}",
-            $argument
-        );
-
-        return static::find(
-            Helper::range((int) Server::insertId(static::getServer()), $rows)
+        return new Storage(
+            $actuator->fetch("SELECT * FROM {$table}"),
+            $actuator
         );
     }
 
-    public static function count()
+    public static function create(array $columns)
     {
-        $field = Helper::standardise(static::getPrimaryKey());
-        $table = Helper::standardise(static::getTable());
+        $actuator = self::getActuator();
+        $field    = Builder::makeField(array_keys($columns));
+        $table    = $actuator->getTable();
+        $columns  = Builder::normalizeInsertRows(array_values($columns));
+        $rowCount = count(reset($columns));
+        $argument = new Argument();
+        $unit     = Helper::fill(count($columns));
+        $values   = implode(',', array_map(function (...$row) use ($argument, $unit) {
+            $argument->push($row);
+            return $unit;
+        }, ...$columns));
 
-        return (int) Server::execute(
-            static::getServer(),
-            "SELECT COUNT({$field}) AS `total` FROM {$table}"
-        )->fetchAll(PDO::FETCH_ASSOC)[0]['total'];
+        $actuator->fetch("INSERT INTO {$table} ({$field}) VALUES {$values}", $argument);
+
+        $ids   = Helper::range($actuator->lastId(), $rowCount);
+        $count = $argument->clean()->push($ids)->count();
+        $where = Builder::makeWhereIn($actuator->getPrimaryKey(false), $count);
+
+        return new Storage(
+            $actuator->fetch("SELECT * FROM {$table} WHERE {$where} LIMIT {$count}", $argument),
+            $actuator
+        );
+    }
+
+    public static function insert(array $columns)
+    {
+        $actuator = self::getActuator();
+        $field    = Builder::makeField(array_keys($columns));
+        $table    = $actuator->getTable();
+        $columns  = Builder::normalizeInsertRows(array_values($columns));
+        $rowCount = count(reset($columns));
+        $argument = new Argument();
+        $unit     = Helper::fill(count($columns));
+        $values   = implode(',', array_map(function (...$row) use ($argument, $unit) {
+            $argument->push($row);
+            return $unit;
+        }, ...$columns));
+
+        $actuator->fetch("INSERT INTO {$table} ({$field}) VALUES {$values}", $argument);
+
+        return Helper::range($actuator->lastId(), $rowCount);
+    }
+
+    public static function count($column = null, $distinct = false)
+    {
+        $actuator = self::getActuator();
+        $table    = $actuator->getTable();
+        $field    = Builder::makeCountField(
+            is_null($column) ? $actuator->getPrimaryKey(false) : $column,
+            $distinct
+        );
+
+        return intval(
+            $actuator
+                ->fetch("SELECT {$field} FROM {$table}")
+                ->fetchAll(\PDO::FETCH_ASSOC)[0]['total']
+        );
     }
 
     public static function destroy($ids)
     {
-        $table    = Helper::standardise(static::getTable());
-        $argument = (new Argument())->push($ids);
-        $length   = $argument->count();
-        $where    = Helper::makeWhereWithPrimaryKey(static::getPrimaryKey(), $length);
+        $actuator = self::getActuator();
+        $table    = $actuator->getTable();
+        $argument = new Argument($ids);
+        $count    = $argument->count();
+        $where    = Builder::makeWhereIn($actuator->getPrimaryKey(false), $count);
 
-        return Server::execute(
-            static::getServer(),
-            "DELETE FROM {$table} WHERE {$where} LIMIT {$length}",
-            $argument
-        )->rowCount();
+        return $actuator
+            ->fetch("DELETE FROM {$table} WHERE {$where} LIMIT {$count}", $argument)
+            ->rowCount();
     }
 
     public static function clean()
     {
-        Server::execute(
-            static::getServer(),
-            'TRUNCATE TABLE ' . Helper::standardise(static::getTable())
-        );
+        $actuator = self::getActuator();
+        $actuator->fetch('TRUNCATE TABLE ' . $actuator->getTable());
+
+        return true;
     }
 
     public static function transaction(Closure $closure, $option = null)
     {
-        if (Server::beginTransaction(static::getServer())) {
-            try {
-                $result = $closure($option);
-            } catch (Exception $e) {
-                Server::rollBack(static::getServer());
-                throw new EormException($e->getMessage());
-            } catch (Throwable $e) {
-                Server::rollBack(static::getServer());
-                throw new EormException($e->getMessage());
-            }
-
-            if (!Server::commit(static::getServer())) {
-                Server::rollBack(static::getServer());
-                throw new EormException('Commit transaction failed.');
-            }
-
-            return $result;
-        }
-
-        throw new EormException('Failed to start transaction.');
+        return self::getActuator()->transaction($closure, $option);
     }
 }
