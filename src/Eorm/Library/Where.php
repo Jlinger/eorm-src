@@ -42,7 +42,7 @@ class Where
 
     public function compare($field, $value, $option = true)
     {
-        $field = Helper::standardise($field);
+        $field = Helper::format($field);
 
         if (is_string($value) || is_numeric($value)) {
             if (is_bool($option)) {
@@ -97,7 +97,7 @@ class Where
 
     public function like($field, $value, $option = true)
     {
-        $field = Helper::standardise($field);
+        $field = Helper::format($field);
 
         if (preg_match('/[%_]/', $value)) {
             $connector = $option ? ' LIKE ?' : ' NOT LIKE ?';
