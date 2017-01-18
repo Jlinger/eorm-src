@@ -15,7 +15,6 @@
 namespace Eorm;
 
 use Closure;
-use Eorm\Exceptions\EormException;
 use Eorm\Library\Actuator;
 use Eorm\Library\Argument;
 use Eorm\Library\Builder;
@@ -23,9 +22,7 @@ use Eorm\Library\Helper;
 use Eorm\Library\Query;
 use Eorm\Library\Storage;
 use Eorm\Library\Where;
-use Exception;
 use PDO;
-use Throwable;
 
 class Eorm
 {
@@ -218,25 +215,6 @@ class Eorm
 
     public static function transaction(Closure $closure, $option = null)
     {
-        if (Server::beginTransaction(static::getServer())) {
-            try {
-                $result = $closure($option);
-            } catch (Exception $e) {
-                Server::rollBack(static::getServer());
-                throw new EormException($e->getMessage());
-            } catch (Throwable $e) {
-                Server::rollBack(static::getServer());
-                throw new EormException($e->getMessage());
-            }
-
-            if (!Server::commit(static::getServer())) {
-                Server::rollBack(static::getServer());
-                throw new EormException('Commit transaction failed.');
-            }
-
-            return $result;
-        }
-
-        throw new EormException('Failed to start transaction.');
+        return self::getActuator()->transaction($closure, $option);
     }
 }
