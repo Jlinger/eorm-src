@@ -7,7 +7,7 @@
  *+------------------------------------------------------------------------------------------------+
  *| @license   MIT                                                                                 |
  *| @link      https://www.edoger.com/                                                             |
- *| @copyright Copyright (c) 2016 Qingshan Luo                                                     |
+ *| @copyright Copyright (c) 2016 - 2017 Qingshan Luo                                                     |
  *+------------------------------------------------------------------------------------------------+
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
@@ -22,8 +22,10 @@ use Eorm\Library\Helper;
 use Eorm\Library\Query;
 use Eorm\Library\Storage;
 use Eorm\Library\Where;
-use PDO;
 
+/**
+ *
+ */
 class Eorm
 {
     private static $actuators = [];
@@ -188,7 +190,7 @@ class Eorm
         return intval(
             $actuator
                 ->fetch("SELECT {$field} FROM {$table}")
-                ->fetchAll(PDO::FETCH_ASSOC)[0]['total']
+                ->fetchAll(\PDO::FETCH_ASSOC)[0]['total']
         );
     }
 
