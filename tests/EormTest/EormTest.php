@@ -78,13 +78,7 @@ class EormTest extends TestCase
 
     public function testAll()
     {
-        $this->assertEquals(
-            [
-                ['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China'],
-                ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
-            ],
-            Example::all()->result()->toArray()
-        );
+
     }
 
     public function testCount()
@@ -92,6 +86,69 @@ class EormTest extends TestCase
         $this->assertEquals(
             2,
             Example::count()
+        );
+    }
+
+    public function testQuery()
+    {
+        $this->assertEquals(
+            [
+                ['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China'],
+                ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
+            ],
+            Example::query()->get()->result()->toArray()
+        );
+    }
+
+    public function testWhere()
+    {
+        $this->assertEquals(
+            [
+                ['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China'],
+            ],
+            Example::where('id', 1)->get()->result()->toArray()
+        );
+
+        $this->assertEquals(
+            [
+                ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
+            ],
+            Example::where('name', ['Test2'])->get()->result()->toArray()
+        );
+    }
+
+    public function testStorage()
+    {
+        $this->assertEquals(
+            [
+                ['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China'],
+                ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
+                ['id' => '3', 'name' => 'Test3', 'age' => '20', 'country' => 'USA'],
+                ['id' => '4', 'name' => 'Test4', 'age' => '30', 'country' => 'USA'],
+            ],
+            Example::all()->insert([
+                'name'    => ['Test3', 'Test4'],
+                'age'     => [20, 30],
+                'country' => 'USA',
+            ])->result()->toArray()
+        );
+
+        Example::find([1, 3])->delete();
+
+        $this->assertEquals(
+            [
+                ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
+                ['id' => '4', 'name' => 'Test4', 'age' => '30', 'country' => 'USA'],
+            ],
+            Example::all()->result()->toArray()
+        );
+
+        $this->assertEquals(
+            [
+                ['id' => '5', 'name' => 'Test2', 'age' => '40', 'country' => 'China'],
+                ['id' => '6', 'name' => 'Test4', 'age' => '40', 'country' => 'USA'],
+            ],
+            Example::all()->set('age', 40)->replace()->result()->toArray()
         );
     }
 }
