@@ -44,21 +44,6 @@ class Eorm
         return self::$actuators[$abstract];
     }
 
-    private static function getWhere($target, $value, $option, $mode)
-    {
-        if (is_bool($target)) {
-            $where = new Where($target);
-        } elseif ($target instanceof Closure) {
-            $where = new Where(is_bool($value) ? $value : true);
-            $target($where);
-        } else {
-            $where = new Where($mode);
-            $where->compare($target, $value, $option);
-        }
-
-        return $where;
-    }
-
     public static function getTable()
     {
         return self::getActuator()->getTable(false);
