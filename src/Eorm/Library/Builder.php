@@ -51,6 +51,11 @@ final class Builder
         }
     }
 
+    /**
+     * [normalizeInsertRows description]
+     * @param  array  $columns [description]
+     * @return [type]          [description]
+     */
     public static function normalizeInsertRows(array $columns)
     {
         $columns = array_map([Helper::class, 'toArray'], $columns);

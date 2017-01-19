@@ -7,7 +7,7 @@
  *+------------------------------------------------------------------------------------------------+
  *| @license   MIT                                                                                 |
  *| @link      https://www.edoger.com/                                                             |
- *| @copyright Copyright (c) 2016 - 2017 Qingshan Luo                                                     |
+ *| @copyright Copyright (c) 2016 - 2017 Qingshan Luo                                              |
  *+------------------------------------------------------------------------------------------------+
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
@@ -24,16 +24,43 @@ use Eorm\Library\Storage;
 use Eorm\Library\Where;
 
 /**
- *
+ * Eorm Model Base Class.
  */
 class Eorm
 {
+    /**
+     * All model actuator instanses.
+     *
+     * @var array
+     */
     private static $actuators = [];
 
-    protected $table      = null;
-    protected $primaryKey = 'id';
-    protected $server     = 'default';
+    /**
+     * Default table name.
+     *
+     * @var null
+     */
+    protected $table = null;
 
+    /**
+     * Default table primary key name.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Default server name.
+     *
+     * @var string
+     */
+    protected $server = 'default';
+
+    /**
+     * Create/Get actuator instanse.
+     *
+     * @return Actuator
+     */
     private static function getActuator()
     {
         $abstract = static::class;
@@ -44,21 +71,45 @@ class Eorm
         return self::$actuators[$abstract];
     }
 
+    /**
+     * Get table name.
+     *
+     * @return string
+     */
     public static function getTable()
     {
         return self::getActuator()->getTable(false);
     }
 
+    /**
+     * Get table primary key name.
+     *
+     * @return string
+     */
     public static function getPrimaryKey()
     {
         return self::getActuator()->getPrimaryKey(false);
     }
 
+    /**
+     * Create a Query instanse, and set a SQL where condition.
+     *
+     * @param  string|Closure  $target  The field name.
+     * @param  mixed           $value   The condition value.
+     * @param  boolean|string  $option  The connector.
+     * @param  boolean         $mode    The where mode.
+     * @return Query
+     */
     public static function where($target, $value = null, $option = true, $mode = true)
     {
         return static::query($mode)->where($target, $value, $option);
     }
 
+    /**
+     * [find description]
+     * @param  [type] $ids [description]
+     * @return [type]      [description]
+     */
     public static function find($ids)
     {
         $actuator = self::getActuator();
@@ -73,11 +124,20 @@ class Eorm
         );
     }
 
+    /**
+     * [query description]
+     * @param  boolean $mode [description]
+     * @return [type]        [description]
+     */
     public static function query($mode = true)
     {
         return new Query(self::getActuator(), $mode);
     }
 
+    /**
+     * [all description]
+     * @return [type] [description]
+     */
     public static function all()
     {
         $actuator = self::getActuator();
@@ -89,6 +149,11 @@ class Eorm
         );
     }
 
+    /**
+     * [create description]
+     * @param  array  $columns [description]
+     * @return [type]          [description]
+     */
     public static function create(array $columns)
     {
         $actuator = self::getActuator();
@@ -115,6 +180,11 @@ class Eorm
         );
     }
 
+    /**
+     * [insert description]
+     * @param  array  $columns [description]
+     * @return [type]          [description]
+     */
     public static function insert(array $columns)
     {
         $actuator = self::getActuator();
@@ -134,6 +204,12 @@ class Eorm
         return Helper::range($actuator->lastId(), $rowCount);
     }
 
+    /**
+     * [count description]
+     * @param  [type]  $column   [description]
+     * @param  boolean $distinct [description]
+     * @return [type]            [description]
+     */
     public static function count($column = null, $distinct = false)
     {
         $actuator = self::getActuator();
@@ -150,6 +226,11 @@ class Eorm
         );
     }
 
+    /**
+     * [destroy description]
+     * @param  [type] $ids [description]
+     * @return [type]      [description]
+     */
     public static function destroy($ids)
     {
         $actuator = self::getActuator();
@@ -163,6 +244,10 @@ class Eorm
             ->rowCount();
     }
 
+    /**
+     * [clean description]
+     * @return [type] [description]
+     */
     public static function clean()
     {
         $actuator = self::getActuator();
@@ -171,6 +256,12 @@ class Eorm
         return true;
     }
 
+    /**
+     * [transaction description]
+     * @param  Closure $closure [description]
+     * @param  [type]  $option  [description]
+     * @return [type]           [description]
+     */
     public static function transaction(Closure $closure, $option = null)
     {
         return self::getActuator()->transaction($closure, $option);

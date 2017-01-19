@@ -14,6 +14,9 @@
  */
 namespace Eorm\Exceptions;
 
+/**
+ *
+ */
 class EormException extends \Exception
 {
     //

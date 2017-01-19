@@ -19,21 +19,65 @@ use Eorm\Library\Actuator;
 use InvalidArgumentException;
 use PDO;
 
+/**
+ *
+ */
 class Query
 {
+    /**
+     * [$actuator description]
+     * @var [type]
+     */
     protected $actuator;
+
+    /**
+     * [$mode description]
+     * @var [type]
+     */
     protected $mode;
-    protected $where   = null;
-    protected $limit   = 0;
-    protected $skip    = 0;
+
+    /**
+     * [$where description]
+     * @var null
+     */
+    protected $where = null;
+
+    /**
+     * [$limit description]
+     * @var integer
+     */
+    protected $limit = 0;
+
+    /**
+     * [$skip description]
+     * @var integer
+     */
+    protected $skip = 0;
+
+    /**
+     * [$orderBy description]
+     * @var array
+     */
     protected $orderBy = [];
 
+    /**
+     * [__construct description]
+     * @param Actuator $actuator [description]
+     * @param boolean  $mode     [description]
+     */
     public function __construct(Actuator $actuator, $mode = true)
     {
         $this->mode     = $mode;
         $this->actuator = $actuator;
     }
 
+    /**
+     * [where description]
+     * @param  [type]  $target [description]
+     * @param  [type]  $value  [description]
+     * @param  boolean $option [description]
+     * @return [type]          [description]
+     */
     public function where($target, $value = null, $option = true)
     {
         if (is_null($this->where)) {
@@ -55,6 +99,12 @@ class Query
         return $this;
     }
 
+    /**
+     * [orderBy description]
+     * @param  [type]  $column [description]
+     * @param  boolean $ascend [description]
+     * @return [type]          [description]
+     */
     public function orderBy($column, $ascend = true)
     {
         $formattedColumn = Helper::format($target);
@@ -64,6 +114,11 @@ class Query
         return $this;
     }
 
+    /**
+     * [limit description]
+     * @param  [type] $num [description]
+     * @return [type]      [description]
+     */
     public function limit($num)
     {
         $this->limit = intval($num);
@@ -71,6 +126,11 @@ class Query
         return $this;
     }
 
+    /**
+     * [skip description]
+     * @param  [type] $num [description]
+     * @return [type]      [description]
+     */
     public function skip($num)
     {
         $this->skip = intval($num);
@@ -78,6 +138,10 @@ class Query
         return $this;
     }
 
+    /**
+     * [get description]
+     * @return [type] [description]
+     */
     public function get()
     {
         $table    = $this->actuator->getTable();
@@ -108,11 +172,19 @@ class Query
         return new Storage($this->actuator->fetch($sql, $argument), $this->actuator);
     }
 
+    /**
+     * [one description]
+     * @return [type] [description]
+     */
     public function one()
     {
         return $this->limit(1)->skip(0)->get();
     }
 
+    /**
+     * [count description]
+     * @return [type] [description]
+     */
     public function count()
     {
         $field    = $this->actuator->getPrimaryKey();
@@ -135,6 +207,10 @@ class Query
         );
     }
 
+    /**
+     * [exists description]
+     * @return [type] [description]
+     */
     public function exists()
     {
         $field    = $this->actuator->getPrimaryKey();
