@@ -7,7 +7,7 @@
  *+------------------------------------------------------------------------------------------------+
  *| @license   MIT                                                                                 |
  *| @link      https://www.edoger.com/                                                             |
- *| @copyright Copyright (c) 2016 Qingshan Luo                                                     |
+ *| @copyright Copyright (c) 2016 - 2017 Qingshan Luo                                              |
  *+------------------------------------------------------------------------------------------------+
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
@@ -16,14 +16,26 @@ namespace Models;
 
 use Eorm\Eorm;
 
+/**
+ *
+ */
 class Example extends Eorm
 {
-    // Table name.
+    /**
+     * [$table description]
+     * @var null
+     */
     protected $table = null;
 
-    // Primary key.
+    /**
+     * [$primaryKey description]
+     * @var string
+     */
     protected $primaryKey = 'id';
 
-    // Database server name.
+    /**
+     * [$server description]
+     * @var string
+     */
     protected $server = 'eorm';
 }

@@ -17,29 +17,66 @@ namespace Eorm\Library;
 use Closure;
 use Eorm\Exceptions\EormException;
 
+/**
+ *
+ */
 class Where
 {
+    /**
+     * [$mode description]
+     * @var [type]
+     */
     protected $mode;
-    protected $conditions = [];
-    protected $arguments  = [];
 
+    /**
+     * [$conditions description]
+     * @var array
+     */
+    protected $conditions = [];
+
+    /**
+     * [$arguments description]
+     * @var array
+     */
+    protected $arguments = [];
+
+    /**
+     * [__construct description]
+     * @param boolean $mode [description]
+     */
     public function __construct($mode = true)
     {
         $this->mode($mode);
     }
 
+    /**
+     * [mode description]
+     * @param  [type] $mode [description]
+     * @return [type]       [description]
+     */
     public function mode($mode)
     {
         $this->mode = (bool) $mode;
         return $this;
     }
 
+    /**
+     * [clean description]
+     * @return [type] [description]
+     */
     public function clean()
     {
         $this->conditions = [];
         return $this;
     }
 
+    /**
+     * [compare description]
+     * @param  [type]  $field  [description]
+     * @param  [type]  $value  [description]
+     * @param  boolean $option [description]
+     * @return [type]          [description]
+     */
     public function compare($field, $value, $option = true)
     {
         $field = Helper::format($field);
@@ -95,6 +132,13 @@ class Where
         throw new EormException('Illegal condition value.');
     }
 
+    /**
+     * [like description]
+     * @param  [type]  $field  [description]
+     * @param  [type]  $value  [description]
+     * @param  boolean $option [description]
+     * @return [type]          [description]
+     */
     public function like($field, $value, $option = true)
     {
         $field = Helper::format($field);
@@ -108,6 +152,12 @@ class Where
         return $this->pushCondition($field . $connector)->pushArgument($value);
     }
 
+    /**
+     * [group description]
+     * @param  Closure $closure [description]
+     * @param  boolean $mode    [description]
+     * @return [type]           [description]
+     */
     public function group(Closure $closure, $mode = false)
     {
         $where = new Where($mode);
@@ -123,11 +173,20 @@ class Where
         return $this;
     }
 
+    /**
+     * [getArgument description]
+     * @return [type] [description]
+     */
     public function getArgument()
     {
         return $this->arguments;
     }
 
+    /**
+     * [toString description]
+     * @param  boolean $brackets [description]
+     * @return [type]            [description]
+     */
     public function toString($brackets = false)
     {
         $condition = implode($this->mode ? ' AND ' : ' OR ', $this->conditions);
@@ -139,6 +198,11 @@ class Where
         }
     }
 
+    /**
+     * [pushArgument description]
+     * @param  [type] $argument [description]
+     * @return [type]           [description]
+     */
     protected function pushArgument($argument)
     {
         if (is_array($argument)) {
@@ -152,6 +216,11 @@ class Where
         return $this;
     }
 
+    /**
+     * [pushCondition description]
+     * @param  [type] $condition [description]
+     * @return [type]            [description]
+     */
     protected function pushCondition($condition)
     {
         $this->conditions[] = $condition;

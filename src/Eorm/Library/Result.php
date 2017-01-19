@@ -17,11 +17,27 @@ namespace Eorm\Library;
 use Closure;
 use Eorm\Exceptions\EormException;
 
+/**
+ *
+ */
 class Result
 {
+    /**
+     * [$source description]
+     * @var [type]
+     */
     protected $source;
+
+    /**
+     * [$columns description]
+     * @var array
+     */
     protected $columns = [];
 
+    /**
+     * [__construct description]
+     * @param array $source [description]
+     */
     public function __construct(array $source)
     {
         $this->source = $source;
@@ -32,11 +48,21 @@ class Result
         }
     }
 
+    /**
+     * [existsColumnName description]
+     * @param  [type] $name [description]
+     * @return [type]       [description]
+     */
     protected function existsColumnName($name)
     {
         return isset($this->columns[$name]);
     }
 
+    /**
+     * [checkColumnName description]
+     * @param  [type] $name [description]
+     * @return [type]       [description]
+     */
     protected function checkColumnName($name)
     {
         if (!$this->existsColumnName($name)) {
@@ -46,6 +72,11 @@ class Result
         return $this;
     }
 
+    /**
+     * [standardiseColumnNames description]
+     * @param  [type] $names [description]
+     * @return [type]        [description]
+     */
     protected function standardiseColumnNames($names)
     {
         $standardizedColumns = [];
@@ -86,16 +117,30 @@ class Result
         return $standardizedColumns;
     }
 
+    /**
+     * [isEmpty description]
+     * @return boolean [description]
+     */
     public function isEmpty()
     {
         return empty($this->source);
     }
 
+    /**
+     * [count description]
+     * @return [type] [description]
+     */
     public function count()
     {
         return count($this->source);
     }
 
+    /**
+     * [filter description]
+     * @param  Closure $closure [description]
+     * @param  [type]  $option  [description]
+     * @return [type]           [description]
+     */
     public function filter(Closure $closure, $option = null)
     {
         if (!$this->isEmpty()) {
@@ -115,6 +160,12 @@ class Result
         return $this;
     }
 
+    /**
+     * [each description]
+     * @param  Closure $closure [description]
+     * @param  [type]  $option  [description]
+     * @return [type]           [description]
+     */
     public function each(Closure $closure, $option = null)
     {
         $calculated = [];
@@ -128,6 +179,14 @@ class Result
         return $calculated;
     }
 
+    /**
+     * [map description]
+     * @param  array  $map       [description]
+     * @param  [type] $target    [description]
+     * @param  [type] $reference [description]
+     * @param  [type] $default   [description]
+     * @return [type]            [description]
+     */
     public function map(array $map, $target, $reference = null, $default = null)
     {
         if (is_null($reference)) {
@@ -152,6 +211,12 @@ class Result
         return $this;
     }
 
+    /**
+     * [group description]
+     * @param  [type] $group [description]
+     * @param  array  $names [description]
+     * @return [type]        [description]
+     */
     public function group($group, $names = [])
     {
         $groupData = [];
@@ -187,6 +252,10 @@ class Result
         return $groupData;
     }
 
+    /**
+     * [transpose description]
+     * @return [type] [description]
+     */
     public function transpose()
     {
         $transposeData = [];
@@ -205,6 +274,11 @@ class Result
         return $transposeData;
     }
 
+    /**
+     * [transform description]
+     * @param  array  $map [description]
+     * @return [type]      [description]
+     */
     public function transform(array $map)
     {
         if ($this->isEmpty() || empty($map)) {
@@ -238,6 +312,11 @@ class Result
         return $this;
     }
 
+    /**
+     * [row description]
+     * @param  [type] $index [description]
+     * @return [type]        [description]
+     */
     public function row($index)
     {
         if ($this->isEmpty()) {
@@ -255,6 +334,10 @@ class Result
         }
     }
 
+    /**
+     * [first description]
+     * @return [type] [description]
+     */
     public function first()
     {
         if ($this->isEmpty()) {
@@ -273,6 +356,12 @@ class Result
         }
     }
 
+    /**
+     * [column description]
+     * @param  [type]  $name   [description]
+     * @param  boolean $unique [description]
+     * @return [type]          [description]
+     */
     public function column($name, $unique = false)
     {
         if ($this->isEmpty()) {
@@ -287,6 +376,11 @@ class Result
         }
     }
 
+    /**
+     * [toArray description]
+     * @param  array  $columns [description]
+     * @return [type]          [description]
+     */
     public function toArray($columns = [])
     {
         if (empty($columns) || $this->isEmpty()) {
@@ -306,6 +400,11 @@ class Result
         );
     }
 
+    /**
+     * [__get description]
+     * @param  [type] $column [description]
+     * @return [type]         [description]
+     */
     public function __get($column)
     {
         if ($this->existsColumnName($column)) {
@@ -320,6 +419,11 @@ class Result
         }
     }
 
+    /**
+     * [__isset description]
+     * @param  [type]  $column [description]
+     * @return boolean         [description]
+     */
     public function __isset($column)
     {
         return $this->existsColumnName($column);

@@ -17,13 +17,40 @@ namespace Eorm\Library;
 use PDO;
 use PDOStatement;
 
+/**
+ *
+ */
 class Storage
 {
+    /**
+     * [$actuator description]
+     * @var [type]
+     */
     protected $actuator;
-    protected $source  = [];
-    protected $ids     = [];
+
+    /**
+     * [$source description]
+     * @var array
+     */
+    protected $source = [];
+
+    /**
+     * [$ids description]
+     * @var array
+     */
+    protected $ids = [];
+
+    /**
+     * [$changes description]
+     * @var array
+     */
     protected $changes = [];
 
+    /**
+     * [__construct description]
+     * @param PDOStatement $statement [description]
+     * @param Actuator     $actuator  [description]
+     */
     public function __construct(PDOStatement $statement, Actuator $actuator)
     {
         $this->source   = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -34,21 +61,38 @@ class Storage
         }
     }
 
+    /**
+     * [result description]
+     * @return [type] [description]
+     */
     public function result()
     {
         return new Result($this->source);
     }
 
+    /**
+     * [isEmpty description]
+     * @return boolean [description]
+     */
     public function isEmpty()
     {
         return empty($this->source);
     }
 
+    /**
+     * [count description]
+     * @return [type] [description]
+     */
     public function count()
     {
         return count($this->source);
     }
 
+    /**
+     * [set description]
+     * @param [type] $column [description]
+     * @param [type] $target [description]
+     */
     public function set($column, $target = null)
     {
         if (is_array($column)) {
@@ -62,6 +106,11 @@ class Storage
         return $this;
     }
 
+    /**
+     * [save description]
+     * @param  boolean $create [description]
+     * @return [type]          [description]
+     */
     public function save($create = false)
     {
         if (empty($this->changes)) {
@@ -98,6 +147,11 @@ class Storage
         }
     }
 
+    /**
+     * [replace description]
+     * @param  boolean $create [description]
+     * @return [type]          [description]
+     */
     public function replace($create = false)
     {
         if (empty($this->changes)) {
@@ -150,6 +204,10 @@ class Storage
         }
     }
 
+    /**
+     * [reload description]
+     * @return [type] [description]
+     */
     public function reload()
     {
         $count = count($this->ids);
@@ -175,6 +233,10 @@ class Storage
         return $this;
     }
 
+    /**
+     * [delete description]
+     * @return [type] [description]
+     */
     public function delete()
     {
         $count = count($this->ids);
@@ -194,6 +256,11 @@ class Storage
         return $this;
     }
 
+    /**
+     * [insert description]
+     * @param  array  $columns [description]
+     * @return [type]          [description]
+     */
     public function insert(array $columns)
     {
         $field    = Builder::makeField(array_keys($columns));
@@ -212,6 +279,11 @@ class Storage
         return $this->push(Helper::range($this->actuator->lastId(), $rowCount));
     }
 
+    /**
+     * [push description]
+     * @param  [type] $ids [description]
+     * @return [type]      [description]
+     */
     public function push($ids)
     {
         array_push($this->ids, ...Helper::toArray($ids));

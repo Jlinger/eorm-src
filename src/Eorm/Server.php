@@ -30,6 +30,11 @@ class Server
      */
     private static $connections = [];
 
+    /**
+     * The SQL statement execution hooks.
+     *
+     * @var array
+     */
     private static $hooks = [];
 
     /**
@@ -50,10 +55,11 @@ class Server
     }
 
     /**
-     * [hook description]
-     * @param  Closure $action    [description]
-     * @param  [type]  $parameter [description]
-     * @return [type]             [description]
+     * Add a SQL statement execution hook.
+     *
+     * @param  Closure  $action     The hook closure.
+     * @param  mixed    $parameter  The hook other parameter.
+     * @return boolean
      */
     public static function hook(Closure $action, $parameter = null)
     {
@@ -88,12 +94,13 @@ class Server
     }
 
     /**
-     * [callHooks description]
-     * @param  [type] $statement [description]
-     * @param  array  $arguments [description]
-     * @param  [type] $server    [description]
-     * @param  [type] $table     [description]
-     * @return [type]            [description]
+     * Call all SQL statement execution hooks.
+     *
+     * @param  string  $statement  The SQL statement.
+     * @param  array   $arguments  The SQL arguments.
+     * @param  string  $server     The database server name.
+     * @param  string  $table      The table name.
+     * @return Server
      */
     protected function callHooks($statement, array $arguments, $server, $table)
     {
