@@ -28,7 +28,11 @@ class Helper
      */
     public static function format($value)
     {
-        return '`' . str_replace('`', '``', $value) . '`';
+        if (is_string($value)) {
+            return '`' . str_replace('`', '``', $value) . '`';
+        }
+
+        throw new EormException('Column name must be a string.');
     }
 
     /**
@@ -103,6 +107,7 @@ class Helper
     public static function fill($length, $element = '?', $brackets = true)
     {
         $sequence = static::join(array_fill(0, $length, $element));
+
         if ($brackets) {
             return '(' . $sequence . ')';
         } else {
