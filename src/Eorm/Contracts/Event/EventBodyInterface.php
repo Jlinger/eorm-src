@@ -12,35 +12,35 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
+namespace Eorm\Contracts\Event;
 
-require __DIR__ . '/../vendor/autoload.php';
+/**
+ * Eorm event body class interface.
+ */
+interface EventBodyInterface
+{
+    /**
+     * Gets the Eorm event name.
+     *
+     * @return string
+     */
+    public function name();
 
-// Add MySQL Server Connection To Eorm\Eorm Class.
-// Default server name is 'eorm'.
-// Use Table 'example'.
-if (file_exists(__DIR__ . '/../test.lock')) {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'eorm',
-                'eorm'
-            );
-        },
-        'eorm'
-    );
-} else {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'root',
-                ''
-            );
-        },
-        'eorm'
-    );
+    /**
+     * Gets the Eorm event body properties by name.
+     * If the property does not exist, the default value is returned.
+     *
+     * @param  string  $name     The Eorm event body property name.
+     * @param  mixed   $default  The default value. (NULL)
+     * @return mixed
+     */
+    public function get($name, $default = null);
+
+    /**
+     * Check whether the Eorm event body property exists.
+     *
+     * @param  string  $name  The Eorm event body property name.
+     * @return boolean
+     */
+    public function exists($name);
 }
-
-// Load Example Model Class.
-require __DIR__ . '/../src/Models/Example.php';

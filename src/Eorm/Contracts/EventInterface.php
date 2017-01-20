@@ -12,37 +12,48 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Models;
+namespace Eorm\Contracts;
 
-use Eorm\Model;
+use Eorm\Contracts\Event\EventBodyInterface;
+use Eorm\Contracts\Event\EventHandlerInterface;
 
 /**
- * This is a Eorm example model class for testing.
+ * Eorm event manager class interface.
  */
-class Example extends Model
+interface EventInterface
 {
     /**
-     * Model associated database table name.
-     * If set to NULL or not set, will use the model class name to lowercase as the default table name.
+     * Register a Eorm event handler.
      *
-     * @var null
+     * @param  string                 $name     The Eorm event name.
+     * @param  EventHandlerInterface  $handler  The Eorm event handler.
+     * @return integer
      */
-    protected $table = null;
+    public static function on($name, EventHandlerInterface $handler);
 
     /**
-     * Model associated database table primary key name.
-     * If not set, will use 'id' as the default primary key name.
-     * We agree that the primary key field must be self increasing.
+     * Delete a Eorm event handler.
      *
-     * @var string
+     * @param  string   $name  The Eorm event name.
+     * @param  boolean  $all   Delete all event handlers ? (no)
+     * @return EventHandlerInterface|array|null
      */
-    protected $primaryKey = 'id';
+    public static function off($name, $all = false);
 
     /**
-     * Model associated database server name.
-     * If not set, will use 'default' as the default database server name.
+     * Trigger a Eorm event.
      *
-     * @var string
+     * @param  EventBodyInterface  $body  The Eorm event body instanse.
+     * @return boolean
      */
-    protected $server = 'eorm';
+    public static function trigger(EventBodyInterface $body);
+
+    /**
+     * Check whether a Eorm event has a handler.
+     * For an invalid Eorm event name, the method returns false.
+     *
+     * @param  string  $name  The Eorm event name.
+     * @return boolean
+     */
+    public static function exists($name);
 }

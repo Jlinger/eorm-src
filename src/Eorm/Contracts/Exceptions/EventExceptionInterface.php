@@ -12,35 +12,17 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
+namespace Eorm\Contracts\Exceptions;
 
-require __DIR__ . '/../vendor/autoload.php';
-
-// Add MySQL Server Connection To Eorm\Eorm Class.
-// Default server name is 'eorm'.
-// Use Table 'example'.
-if (file_exists(__DIR__ . '/../test.lock')) {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'eorm',
-                'eorm'
-            );
-        },
-        'eorm'
-    );
-} else {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'root',
-                ''
-            );
-        },
-        'eorm'
-    );
+/**
+ * The Eorm event exception class interface.
+ */
+interface EventExceptionInterface
+{
+    /**
+     * Gets the Exception event name.
+     *
+     * @return string
+     */
+    public function getEvent();
 }
-
-// Load Example Model Class.
-require __DIR__ . '/../src/Models/Example.php';

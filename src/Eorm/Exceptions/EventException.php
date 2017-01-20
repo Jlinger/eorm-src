@@ -12,35 +12,43 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
+namespace Eorm\Exceptions;
 
-require __DIR__ . '/../vendor/autoload.php';
+use Eorm\Contracts\Exceptions\EventExceptionInterface;
 
-// Add MySQL Server Connection To Eorm\Eorm Class.
-// Default server name is 'eorm'.
-// Use Table 'example'.
-if (file_exists(__DIR__ . '/../test.lock')) {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'eorm',
-                'eorm'
-            );
-        },
-        'eorm'
-    );
-} else {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'root',
-                ''
-            );
-        },
-        'eorm'
-    );
+/**
+ * The Eorm event exception class.
+ */
+class EventException extends EormException implements EventExceptionInterface
+{
+    /**
+     * The exception event name.
+     *
+     * @var string
+     */
+    protected $event;
+
+    /**
+     * Construct the statement exception.
+     *
+     * @param string   $message  The exception message.
+     * @param integer  $code     The exception code.
+     * @param string   $event    The exception event name.
+     */
+    public function __construct($message, $code, $event)
+    {
+        $this->event = $event;
+
+        parent::__construct($message, $code);
+    }
+
+    /**
+     * Gets the Exception event name.
+     *
+     * @return string
+     */
+    public function getEvent()
+    {
+        return $this->event;
+    }
 }
-
-// Load Example Model Class.
-require __DIR__ . '/../src/Models/Example.php';

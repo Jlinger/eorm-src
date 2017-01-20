@@ -12,35 +12,45 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
+namespace Eorm\Contracts;
 
-require __DIR__ . '/../vendor/autoload.php';
+/**
+ * Eorm model base class interface.
+ */
+interface ModelInterface
+{
+    /**
+     * Gets the model associated database table name.
+     *
+     * @return string
+     */
+    public function getTable();
 
-// Add MySQL Server Connection To Eorm\Eorm Class.
-// Default server name is 'eorm'.
-// Use Table 'example'.
-if (file_exists(__DIR__ . '/../test.lock')) {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'eorm',
-                'eorm'
-            );
-        },
-        'eorm'
-    );
-} else {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'root',
-                ''
-            );
-        },
-        'eorm'
-    );
+    /**
+     * Gets model associated database table primary key name.
+     *
+     * @return string
+     */
+    public function getPrimaryKey();
+
+    /**
+     * Gets model associated database server name.
+     *
+     * @return string
+     */
+    public function getServer();
+
+    /**
+     * Get the current model using database table name.
+     *
+     * @return string
+     */
+    public static function table();
+
+    /**
+     * Get the current model using database table primary key name.
+     *
+     * @return string
+     */
+    public static function primaryKey();
 }
-
-// Load Example Model Class.
-require __DIR__ . '/../src/Models/Example.php';

@@ -12,35 +12,36 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
+namespace Eorm\Contracts;
 
-require __DIR__ . '/../vendor/autoload.php';
+/**
+ * Edoger ORM class interface.
+ */
+interface EormInterface
+{
+    /**
+     * Gets Eorm version.
+     *
+     * @return string
+     */
+    public static function version();
 
-// Add MySQL Server Connection To Eorm\Eorm Class.
-// Default server name is 'eorm'.
-// Use Table 'example'.
-if (file_exists(__DIR__ . '/../test.lock')) {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'eorm',
-                'eorm'
-            );
-        },
-        'eorm'
-    );
-} else {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'root',
-                ''
-            );
-        },
-        'eorm'
-    );
+    /**
+     * Gets Eorm model actuator instanse.
+     *
+     * @param  string  $abstract  Eorm model class fully qualified name.
+     * @return ActuatorInterface
+     */
+    public static function getActuator($abstract);
+
+    /**
+     * Add a database server connection.
+     * If you use a closure as the database server, then the closure must return a PDO object.
+     * Duplicate connections are covered when added.
+     *
+     * @param  PDO|Closure  $connection  Connected PDO connection object or a Closure.
+     * @param  string       $name        The database server connection name.
+     * @return void
+     */
+    public static function add($connection, $name = 'default');
 }
-
-// Load Example Model Class.
-require __DIR__ . '/../src/Models/Example.php';

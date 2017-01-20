@@ -12,35 +12,43 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
+namespace Eorm\Exceptions;
 
-require __DIR__ . '/../vendor/autoload.php';
+use Eorm\Contracts\Exceptions\ConnectExceptionInterface;
 
-// Add MySQL Server Connection To Eorm\Eorm Class.
-// Default server name is 'eorm'.
-// Use Table 'example'.
-if (file_exists(__DIR__ . '/../test.lock')) {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'eorm',
-                'eorm'
-            );
-        },
-        'eorm'
-    );
-} else {
-    Eorm\Eorm::add(
-        function () {
-            return new PDO(
-                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
-                'root',
-                ''
-            );
-        },
-        'eorm'
-    );
+/**
+ * Database server connect exception class.
+ */
+class ConnectException extends EormException implements ConnectExceptionInterface
+{
+    /**
+     * The exception database server name.
+     *
+     * @var string
+     */
+    protected $server;
+
+    /**
+     * Construct the database server connection exception.
+     *
+     * @param string   $message  The exception message.
+     * @param integer  $code     The exception code.
+     * @param string   $server   The exception database server name.
+     */
+    public function __construct($message, $code, $server)
+    {
+        $this->server = $server;
+
+        parent::__construct($message, $code);
+    }
+
+    /**
+     * Gets the Exception database server name.
+     *
+     * @return string
+     */
+    public function getServer()
+    {
+        return $this->server;
+    }
 }
-
-// Load Example Model Class.
-require __DIR__ . '/../src/Models/Example.php';
