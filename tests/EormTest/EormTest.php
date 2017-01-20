@@ -17,22 +17,19 @@ namespace EormTest;
 use Models\Example;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Eorm Library Unit Test Class.
+ */
 class EormTest extends TestCase
 {
     public function testGetTable()
     {
-        $this->assertEquals(
-            'example',
-            Example::getTable()
-        );
+        $this->assertEquals('example', Example::getTable());
     }
 
     public function testGetPrimaryKey()
     {
-        $this->assertEquals(
-            'id',
-            Example::getPrimaryKey()
-        );
+        $this->assertEquals('id', Example::getPrimaryKey());
     }
 
     public function testClean()
@@ -42,113 +39,100 @@ class EormTest extends TestCase
 
     public function testInsert()
     {
-        $this->assertEquals(
-            1,
-            Example::insert([
-                'name'    => 'Test1',
-                'age'     => 10,
-                'country' => 'China',
-            ])
-        );
+        $actual      = Example::insert(['name' => 'Test1', 'age' => 10, 'country' => 'China']);
+        $expectation = 1;
+
+        $this->assertEquals($expectation, $actual);
     }
 
     public function testFind()
     {
-        $this->assertEquals(
-            [
-                ['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China'],
-            ],
-            Example::find(1)->result()->toArray()
-        );
+        $actual      = Example::find(1)->result()->toArray();
+        $expectation = [['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China']];
+
+        $this->assertEquals($expectation, $actual);
     }
 
     public function testCreate()
     {
-        $this->assertEquals(
-            [
-                ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
-            ],
-            Example::create([
-                'name'    => 'Test2',
-                'age'     => 20,
-                'country' => 'China',
-            ])->result()->toArray()
-        );
+        $actual      = Example::create(['name' => 'Test2', 'age' => 20, 'country' => 'China'])->result()->toArray();
+        $expectation = [['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China']];
+
+        $this->assertEquals($expectation, $actual);
     }
 
     public function testAll()
     {
+        $actual      = Example::all()->result()->toArray();
+        $expectation = [
+            ['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China'],
+            ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
+        ];
 
+        $this->assertEquals($expectation, $actual);
     }
 
     public function testCount()
     {
-        $this->assertEquals(
-            2,
-            Example::count()
-        );
+        $this->assertEquals(2, Example::count());
     }
 
     public function testQuery()
     {
-        $this->assertEquals(
-            [
-                ['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China'],
-                ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
-            ],
-            Example::query()->get()->result()->toArray()
-        );
+        $actual      = Example::query()->get()->result()->toArray();
+        $expectation = [
+            ['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China'],
+            ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
+        ];
+
+        $this->assertEquals($expectation, $actual);
     }
 
     public function testWhere()
     {
-        $this->assertEquals(
-            [
-                ['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China'],
-            ],
-            Example::where('id', 1)->get()->result()->toArray()
-        );
+        $actual      = Example::where('id', 1)->get()->result()->toArray();
+        $expectation = [['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China']];
 
-        $this->assertEquals(
-            [
-                ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
-            ],
-            Example::where('name', ['Test2'])->get()->result()->toArray()
-        );
+        $this->assertEquals($expectation, $actual);
+
+        $actual      = Example::where('name', ['Test2'])->get()->result()->toArray();
+        $expectation = [['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China']];
+
+        $this->assertEquals($expectation, $actual);
     }
 
     public function testStorage()
     {
-        $this->assertEquals(
-            [
-                ['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China'],
-                ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
-                ['id' => '3', 'name' => 'Test3', 'age' => '20', 'country' => 'USA'],
-                ['id' => '4', 'name' => 'Test4', 'age' => '30', 'country' => 'USA'],
-            ],
-            Example::all()->insert([
-                'name'    => ['Test3', 'Test4'],
-                'age'     => [20, 30],
-                'country' => 'USA',
-            ])->result()->toArray()
-        );
+        $actual = Example::all()
+            ->insert(['name' => ['Test3', 'Test4'], 'age' => [20, 30], 'country' => 'USA'])
+            ->result()
+            ->toArray();
+        $expectation = [
+            ['id' => '1', 'name' => 'Test1', 'age' => '10', 'country' => 'China'],
+            ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
+            ['id' => '3', 'name' => 'Test3', 'age' => '20', 'country' => 'USA'],
+            ['id' => '4', 'name' => 'Test4', 'age' => '30', 'country' => 'USA'],
+        ];
 
+        $this->assertEquals($expectation, $actual);
+
+        // Delete two rows.
         Example::find([1, 3])->delete();
 
-        $this->assertEquals(
-            [
-                ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
-                ['id' => '4', 'name' => 'Test4', 'age' => '30', 'country' => 'USA'],
-            ],
-            Example::all()->result()->toArray()
-        );
+        $actual      = Example::all()->result()->toArray();
+        $expectation = [
+            ['id' => '2', 'name' => 'Test2', 'age' => '20', 'country' => 'China'],
+            ['id' => '4', 'name' => 'Test4', 'age' => '30', 'country' => 'USA'],
+        ];
 
-        $this->assertEquals(
-            [
-                ['id' => '5', 'name' => 'Test2', 'age' => '40', 'country' => 'China'],
-                ['id' => '6', 'name' => 'Test4', 'age' => '40', 'country' => 'USA'],
-            ],
-            Example::all()->set('age', 40)->replace()->result()->toArray()
-        );
+        $this->assertEquals($expectation, $actual);
+
+        $actual      = Example::all()->set('age', 40)->replace()->result()->toArray();
+        $expectation = [
+            ['id' => '5', 'name' => 'Test2', 'age' => '40', 'country' => 'China'],
+            ['id' => '6', 'name' => 'Test4', 'age' => '40', 'country' => 'USA'],
+        ];
+
+        $this->assertEquals($expectation, $actual);
     }
 }

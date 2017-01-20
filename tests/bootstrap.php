@@ -15,22 +15,32 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// Add MySQL server connection.
+// Add MySQL Server Connection To Eorm\Server Class.
+// Default server name is 'eorm'.
+// Use Table 'example'.
 if (file_exists(__DIR__ . '/../test.lock')) {
     Eorm\Server::add(
         function () {
-            return new PDO('mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8', 'eorm', 'eorm');
+            return new PDO(
+                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
+                'eorm',
+                'eorm'
+            );
         },
         'eorm'
     );
 } else {
     Eorm\Server::add(
         function () {
-            return new PDO('mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8', 'root', '');
+            return new PDO(
+                'mysql:host=127.0.0.1;port=3306;dbname=eorm;charset=utf8',
+                'root',
+                ''
+            );
         },
         'eorm'
     );
 }
 
-// Load test model.
+// Load Example Model Class.
 require __DIR__ . '/../src/Models/Example.php';
