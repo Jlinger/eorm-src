@@ -37,11 +37,11 @@ class Users extends Eorm\Eorm
 {
     // 默认的表名就是是类的名称的小写（users）。
     // 这是一个可选的属性。
-    protected static $table = null;
+    protected $table = null;
 
     // 默认的自增主键是 id 。
     // 这是一个可选的属性。
-    protected static $primaryKey = 'id';
+    protected $primaryKey = 'id';
 	
 	// 默认的数据库连接名称。
 	// 这是一个可选的属性。
