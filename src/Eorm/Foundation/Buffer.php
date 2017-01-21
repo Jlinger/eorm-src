@@ -74,6 +74,13 @@ class Buffer implements BufferInterface
         return $this;
     }
 
+    public function merge(BufferInterface $buffer)
+    {
+        $this->pushMany($buffer->output());
+
+        return $this;
+    }
+
     /**
      * Gets the number of binding parameters that have been added.
      *

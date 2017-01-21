@@ -21,21 +21,50 @@ use Eorm\Foundation\Buffer;
 use Eorm\Library\Helper;
 
 /**
- *
+ * SQL where condition builder class.
  */
 class Where
 {
+    /**
+     * Connect mode.
+     * If it is TRUE, will use the 'AND' connector, or use the 'OR' connector.
+     *
+     * @var boolean
+     */
     protected $mode;
+
+    /**
+     * The parameter buffer component instanse.
+     *
+     * @var BufferInterface
+     */
     protected $buffer;
 
+    /**
+     * The connection conditions.
+     *
+     * @var array
+     */
     protected $conditions = [];
 
+    /**
+     * Initialize this condition builder instanse.
+     *
+     * @param boolean  $mode  The connect mode.
+     */
     public function __construct($mode = true)
     {
         $this->mode   = boolval($mode);
         $this->buffer = new Buffer();
     }
 
+    /**
+     * Gets/Sets the current connection mode.
+     * Gets the current connection mode without passing any arguments or passing NULL.
+     *
+     * @param  boolean|null  $mode  The connect mode.
+     * @return boolean
+     */
     public function mode($mode = null)
     {
         if (is_bool($mode)) {
@@ -45,6 +74,11 @@ class Where
         return $this->mode;
     }
 
+    /**
+     * Clear all currently set SQL where conditions.
+     *
+     * @return Where
+     */
     public function clean()
     {
         $this->conditions = [];
@@ -53,6 +87,14 @@ class Where
         return $this;
     }
 
+    /**
+     * Add a SQL where condition.
+     *
+     * @param  string                    $field   [description]
+     * @param  string|number|array|null  $value   [description]
+     * @param  boolean|string            $option  [description]
+     * @return Where
+     */
     public function condition($field, $value, $option = true)
     {
         $formattedField = Helper::format($field);
@@ -114,50 +156,81 @@ class Where
         return $this;
     }
 
+    /**
+     * Add a SQL where like condition.
+     *
+     * @param  string  $field   [description]
+     * @param  string  $value   [description]
+     * @param  boolean $option  [description]
+     * @return Where
+     */
     public function like($field, $value, $option = true)
     {
-        $field = Helper::format($field);
-
-        if (preg_match('/[%_]/', $value)) {
-            $connector = $option ? ' LIKE ?' : ' NOT LIKE ?';
+        if (is_string($value)) {
+            $formattedField = Helper::format($field);
+            if ($option) {
+                $this->push($formattedField . ' LIKE ?');
+            } else {
+                $this->push($formattedField . ' NOT LIKE ?');
+            }
         } else {
-            $connector = $option ? '=?' : '!=?';
-        }
-
-        return $this->pushCondition($field . $connector)->pushArgument($value);
-    }
-
-    public function group(Closure $closure, $mode = false)
-    {
-        $where = new Where($mode);
-        $closure($where);
-
-        $this->pushCondition($where->toString(true));
-
-        $arguments = $where->getArgument();
-        if (!empty($arguments)) {
-            $this->pushArgument($arguments);
+            throw new ArgumentException('Invalid like condition value.', Eorm::ERROR_ARGUMENT);
         }
 
         return $this;
     }
 
+    /**
+     * [group description]
+     * @param  Closure $closure [description]
+     * @param  boolean $mode    [description]
+     * @return [type]           [description]
+     */
+    public function group(Closure $closure, $mode = false)
+    {
+        $where = new Where($mode);
+
+        $closure($where);
+
+        $this->push($where->build(true));
+        $this->buffer()->merge($where->buffer());
+
+        return $this;
+    }
+
+    /**
+     * Gets the parameter buffer component instanse.
+     *
+     * @return BufferInterface
+     */
     public function buffer()
     {
         return $this->buffer;
     }
 
-    public function make($brackets = false)
+    /**
+     * Build and return SQL where condition.
+     *
+     * @param  boolean  $subset  Whether as a subset to build ? (no)
+     * @return string
+     */
+    public function build($subset = false)
     {
         $condition = implode($this->mode ? ' AND ' : ' OR ', $this->conditions);
 
-        if ($brackets) {
+        if ($subset) {
             return '(' . $condition . ')';
         } else {
             return $condition;
         }
     }
 
+    /**
+     * Push a SQL where condition to conditions cache.
+     *
+     * @param  string  $condition  The SQL where condition.
+     * @return Where
+     */
     protected function push($condition)
     {
         $this->conditions[] = $condition;

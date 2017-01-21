@@ -32,4 +32,44 @@ class Select extends AnotherClass
         $this->table      = $actuator->table();
         $this->primaryKey = $actuator->primaryKey();
     }
+
+    public function where($target, $value = null, $option = true, $mode = true)
+    {
+
+    }
+
+    public function orderBy($field, $ascend = true)
+    {
+
+    }
+
+    public function limit($count)
+    {
+
+    }
+
+    public function skip($count)
+    {
+
+    }
+
+    public function fetch()
+    {
+
+    }
+
+    public function one()
+    {
+
+    }
+
+    public function count()
+    {
+
+    }
+
+    public function exists()
+    {
+
+    }
 }
