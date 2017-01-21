@@ -16,8 +16,8 @@ namespace Eorm;
 
 use Closure;
 use Eorm\Contracts\EormInterface;
+use Eorm\Exceptions\ArgumentException;
 use Eorm\Exceptions\ConfigurationException;
-use Eorm\Exceptions\EormException;
 use Eorm\Foundation\Actuator;
 use PDO;
 
@@ -41,6 +41,13 @@ class Eorm implements EormInterface
     private static $connections = [];
 
     /**
+     * Enabled state of the Eorm event system.
+     *
+     * @var boolean
+     */
+    private static $eventState = false;
+
+    /**
      * Gets Eorm version string.
      *
      * @return string
@@ -48,6 +55,27 @@ class Eorm implements EormInterface
     public static function version()
     {
         return self::VERSION;
+    }
+
+    /**
+     * Add a database server connection.
+     * If you use a closure as the database server, then the closure must return a PDO object.
+     * Duplicate connections are covered when added.
+     *
+     * @param  PDO|Closure  $connection  Connected PDO connection object or a Closure.
+     * @param  string       $name        The database server connection name.
+     * @return void
+     */
+    public static function add($connection, $name = 'default')
+    {
+        if ($connection instanceof PDO || $connection instanceof Closure) {
+            self::$connections[$name] = $connection;
+        } else {
+            throw new ArgumentException(
+                "The connection must be a PDO object or a Closure.",
+                self::ERROR_ARGUMENT
+            );
+        }
     }
 
     /**
@@ -78,20 +106,18 @@ class Eorm implements EormInterface
     }
 
     /**
-     * Add a database server connection.
-     * If you use a closure as the database server, then the closure must return a PDO object.
-     * Duplicate connections are covered when added.
+     * Sets/Gets the enabled state of the Eorm event system.
+     * Gets the current event enabled state without passing any arguments or passing NULL.
      *
-     * @param  PDO|Closure  $connection  Connected PDO connection object or a Closure.
-     * @param  string       $name        The database server connection name.
-     * @return void
+     * @param  boolean|null  $state  Enabled state of the Eorm event system.
+     * @return boolean
      */
-    public static function add($connection, $name = 'default')
+    public static function event($state = null)
     {
-        if ($connection instanceof PDO || $connection instanceof Closure) {
-            self::$connections[$name] = $connection;
-        } else {
-            throw new EormException("The connection must be a PDO object or a Closure.");
+        if (is_bool($state)) {
+            self::$eventState = $state;
         }
+
+        return self::$eventState;
     }
 }

@@ -32,20 +32,21 @@ interface EormInterface
     const ERROR_TRANSACTION   = 1006;
     const ERROR_EVENT         = 1007;
 
+    const SQL_SELECT  = 6001;
+    const SQL_UPDATE  = 6002;
+    const SQL_INSERT  = 6003;
+    const SQL_DELETE  = 6004;
+    const SQL_REPLACE = 6005;
+    const SQL_CLEAN   = 6006;
+    const SQL_COUNT   = 6007;
+    const SQL_EXISTS  = 6008;
+
     /**
-     * Gets Eorm version.
+     * Gets Eorm version string.
      *
      * @return string
      */
     public static function version();
-
-    /**
-     * Gets Eorm model actuator instanse.
-     *
-     * @param  string  $abstract  Eorm model class fully qualified name.
-     * @return ActuatorInterface
-     */
-    public static function getActuator($abstract);
 
     /**
      * Add a database server connection.
@@ -57,4 +58,21 @@ interface EormInterface
      * @return void
      */
     public static function add($connection, $name = 'default');
+
+    /**
+     * Gets Eorm model actuator instanse.
+     *
+     * @param  string  $abstract  Eorm model class fully qualified name.
+     * @return ActuatorInterface
+     */
+    public static function getActuator($abstract);
+
+    /**
+     * Sets/Gets the enabled state of the Eorm event system.
+     * Gets the current event enabled state without passing any arguments or passing NULL.
+     *
+     * @param  boolean|null  $state  Enabled state of the Eorm event system.
+     * @return boolean
+     */
+    public static function event($state = null);
 }

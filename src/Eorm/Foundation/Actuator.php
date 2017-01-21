@@ -175,24 +175,26 @@ class Actuator implements ActuatorInterface
      */
     public function execute($statement, $type)
     {
-        if (Event::exists($type)) {
-            Event::trigger(new EventBody($type, [
-                'statement'  => $statement,
-                'parameters' => [],
-                'server'     => $this->server(),
-                'table'      => $this->table(false),
-                'type'       => $type,
-            ]));
-        }
+        if (Eorm::event()) {
+            if (Event::exists($type)) {
+                Event::trigger(new EventBody($type, [
+                    'statement'  => $statement,
+                    'parameters' => [],
+                    'server'     => $this->server(),
+                    'table'      => $this->table(false),
+                    'type'       => $type,
+                ]));
+            }
 
-        if (Event::exists('execute')) {
-            Event::trigger(new EventBody('execute', [
-                'statement'  => $statement,
-                'parameters' => $parameters,
-                'server'     => $this->server(),
-                'table'      => $this->table(false),
-                'type'       => $type,
-            ]));
+            if (Event::exists('execute')) {
+                Event::trigger(new EventBody('execute', [
+                    'statement'  => $statement,
+                    'parameters' => $parameters,
+                    'server'     => $this->server(),
+                    'table'      => $this->table(false),
+                    'type'       => $type,
+                ]));
+            }
         }
 
         $rows = $this->connection()->query($statement);
@@ -224,24 +226,26 @@ class Actuator implements ActuatorInterface
      */
     public function query($statement, $type, array $parameters = [])
     {
-        if (Event::exists($type)) {
-            Event::trigger(new EventBody($type, [
-                'statement'  => $statement,
-                'parameters' => $parameters,
-                'server'     => $this->server(),
-                'table'      => $this->table(false),
-                'type'       => $type,
-            ]));
-        }
+        if (Eorm::event()) {
+            if (Event::exists($type)) {
+                Event::trigger(new EventBody($type, [
+                    'statement'  => $statement,
+                    'parameters' => $parameters,
+                    'server'     => $this->server(),
+                    'table'      => $this->table(false),
+                    'type'       => $type,
+                ]));
+            }
 
-        if (Event::exists('execute')) {
-            Event::trigger(new EventBody('execute', [
-                'statement'  => $statement,
-                'parameters' => $parameters,
-                'server'     => $this->server(),
-                'table'      => $this->table(false),
-                'type'       => $type,
-            ]));
+            if (Event::exists('execute')) {
+                Event::trigger(new EventBody('execute', [
+                    'statement'  => $statement,
+                    'parameters' => $parameters,
+                    'server'     => $this->server(),
+                    'table'      => $this->table(false),
+                    'type'       => $type,
+                ]));
+            }
         }
 
         if (empty($parameters)) {

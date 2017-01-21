@@ -47,29 +47,28 @@ class Buffer implements BufferInterface
      * @param  array|string|number|boolean|null  $parameters  The binding parameters of SQL statement.
      * @return Buffer
      */
-    public function push($parameters)
+    public function push($parameter)
     {
-        if (is_array($parameters)) {
-            if (empty($parameters)) {
-                return $this;
-            }
+        if (is_string($parameter) || is_numeric($parameter)) {
+            $this->parameters[] = $parameter;
+        } elseif (is_bool($value)) {
+            $this->parameters[] = $parameter ? 1 : 0;
+        } elseif (is_null($value)) {
+            $this->parameters[] = '';
         } else {
-            $parameters = [$parameters];
+            throw new ArgumentException(
+                "The binding parameter of the SQL statement must be a scalar.",
+                Eorm::ERROR_ARGUMENT
+            );
         }
 
+        return $this;
+    }
+
+    public function pushMany(array $parameters)
+    {
         foreach ($parameters as $parameter) {
-            if (is_string($parameter) || is_numeric($parameter)) {
-                $this->parameters[] = $parameter;
-            } elseif (is_bool($value)) {
-                $this->parameters[] = $parameter ? 1 : 0;
-            } elseif (is_null($value)) {
-                $this->parameters[] = '';
-            } else {
-                throw new ArgumentException(
-                    "The binding parameter of the SQL statement must be a scalar.",
-                    Eorm::ERROR_ARGUMENT
-                );
-            }
+            $this->push($parameter);
         }
 
         return $this;

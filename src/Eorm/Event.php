@@ -39,6 +39,7 @@ class Event implements EventInterface
         'replace' => [],
         'clean'   => [],
         'count'   => [],
+        'exists'  => [],
         'execute' => [],
     ];
 
