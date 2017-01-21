@@ -50,17 +50,6 @@ interface ActuatorInterface
     public function connection();
 
     /**
-     * Executes an SQL statement, returning a result set as a PDOStatement object.
-     * This method is used to execute a query SQL statement without parameters.
-     * If the SQL statement fails, an 'StatementException' exception is thrown.
-     *
-     * @param  string   $statement  The SQL statement to prepare and execute.
-     * @param  integer  $type       The SQL statement type.
-     * @return PDOStatement
-     */
-    public function query($statement, $type);
-
-    /**
      * Execute an SQL statement and return the number of affected rows.
      * This method is used to execute a non query SQL statement without parameters.
      * If the SQL statement fails, an 'StatementException' exception is thrown.
@@ -73,27 +62,14 @@ interface ActuatorInterface
 
     /**
      * Executes an SQL statement, returning a result set as a PDOStatement object.
-     * This method is used to execute a query SQL statement with parameters.
      * If the SQL statement fails, an 'StatementException' exception is thrown.
      *
      * @param  string   $statement   The SQL statement to prepare and execute.
-     * @param  array    $parameters  Binding parameters of SQL statement.
      * @param  integer  $type        The SQL statement type.
+     * @param  array    $parameters  Binding parameters of SQL statement.
      * @return PDOStatement
      */
-    public function read($statement, array $parameters, $type);
-
-    /**
-     * Execute an SQL statement and return the number of affected rows.
-     * This method is used to execute a non query SQL statement with parameters.
-     * If the SQL statement fails, an 'StatementException' exception is thrown.
-     *
-     * @param  string   $statement   The SQL statement to prepare and execute.
-     * @param  array    $parameters  Binding parameters of SQL statement.
-     * @param  integer  $type        The SQL statement type.
-     * @return PDOStatement
-     */
-    public function write($statement, array $parameters, $type);
+    public function query($statement, $type, array $parameters = []);
 
     /**
      * Returns the ID of the last inserted row or sequence value.
@@ -102,6 +78,13 @@ interface ActuatorInterface
      * @return string
      */
     public function getLastInsertId($name = null);
+
+    /**
+     * Checks if inside a transaction.
+     *
+     * @return boolean
+     */
+    public function inTransaction();
 
     /**
      * Initiates a transaction.

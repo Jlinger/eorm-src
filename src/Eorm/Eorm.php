@@ -27,19 +27,6 @@ use PDO;
 class Eorm implements EormInterface
 {
     /**
-     * Eorm version string constant.
-     */
-    const VERSION = '1.0.0-beta1';
-
-    const ERROR_RUNTIME       = 1001;
-    const ERROR_CONNECT       = 1002;
-    const ERROR_CONFIGURATION = 1003;
-    const ERROR_ARGUMENT      = 1004;
-    const ERROR_STATEMENT     = 1005;
-    const ERROR_TRANSACTION   = 1006;
-    const ERROR_EVENT         = 1007;
-
-    /**
      * Model actuator instanses.
      *
      * @var array
@@ -54,7 +41,7 @@ class Eorm implements EormInterface
     private static $connections = [];
 
     /**
-     * Gets Eorm version.
+     * Gets Eorm version string.
      *
      * @return string
      */

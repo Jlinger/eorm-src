@@ -108,7 +108,7 @@ class Event implements EventInterface
                 }
 
                 if ($state === false) {
-                    return $state;
+                    break;
                 }
             }
 

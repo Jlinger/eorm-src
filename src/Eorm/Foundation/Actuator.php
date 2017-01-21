@@ -18,6 +18,7 @@ use Closure;
 use Eorm\Contracts\ActuatorInterface;
 use Eorm\Contracts\ModelInterface;
 use Eorm\Eorm;
+use Eorm\Event;
 use Eorm\Exceptions\ConnectException;
 use Eorm\Exceptions\StatementException;
 use Exception;
@@ -164,34 +165,6 @@ class Actuator implements ActuatorInterface
     }
 
     /**
-     * Executes an SQL statement, returning a result set as a PDOStatement object.
-     * This method is used to execute a query SQL statement without parameters.
-     * If the SQL statement fails, an 'StatementException' exception is thrown.
-     *
-     * @param  string   $statement  The SQL statement to prepare and execute.
-     * @param  integer  $type       The SQL statement type.
-     * @return PDOStatement
-     */
-    public function query($statement, $type)
-    {
-        $object = $this->connection()->query($statement);
-
-        if (!$object) {
-            throw new StatementException(
-                $this->getErrorMessage(),
-                Eorm::ERROR_STATEMENT,
-                $statement,
-                $this->server(),
-                $this->table(false)
-            );
-        }
-
-        $object->setFetchMode($this->fetchModel);
-
-        return $object;
-    }
-
-    /**
      * Execute an SQL statement and return the number of affected rows.
      * This method is used to execute a non query SQL statement without parameters.
      * If the SQL statement fails, an 'StatementException' exception is thrown.
@@ -202,8 +175,27 @@ class Actuator implements ActuatorInterface
      */
     public function execute($statement, $type)
     {
-        $rows = $this->connection()->query($statement);
+        if (Event::exists($type)) {
+            Event::trigger(new EventBody($type, [
+                'statement'  => $statement,
+                'parameters' => [],
+                'server'     => $this->server(),
+                'table'      => $this->table(false),
+                'type'       => $type,
+            ]));
+        }
 
+        if (Event::exists('execute')) {
+            Event::trigger(new EventBody('execute', [
+                'statement'  => $statement,
+                'parameters' => $parameters,
+                'server'     => $this->server(),
+                'table'      => $this->table(false),
+                'type'       => $type,
+            ]));
+        }
+
+        $rows = $this->connection()->query($statement);
         if (!is_int($rows)) {
             if ($this->hasError()) {
                 throw new StatementException(
@@ -223,32 +215,84 @@ class Actuator implements ActuatorInterface
 
     /**
      * Executes an SQL statement, returning a result set as a PDOStatement object.
-     * This method is used to execute a query SQL statement with parameters.
      * If the SQL statement fails, an 'StatementException' exception is thrown.
      *
      * @param  string   $statement   The SQL statement to prepare and execute.
-     * @param  array    $parameters  Binding parameters of SQL statement.
      * @param  integer  $type        The SQL statement type.
+     * @param  array    $parameters  Binding parameters of SQL statement.
      * @return PDOStatement
      */
-    public function read($statement, array $parameters, $type)
+    public function query($statement, $type, array $parameters = [])
     {
+        if (Event::exists($type)) {
+            Event::trigger(new EventBody($type, [
+                'statement'  => $statement,
+                'parameters' => $parameters,
+                'server'     => $this->server(),
+                'table'      => $this->table(false),
+                'type'       => $type,
+            ]));
+        }
 
-    }
+        if (Event::exists('execute')) {
+            Event::trigger(new EventBody('execute', [
+                'statement'  => $statement,
+                'parameters' => $parameters,
+                'server'     => $this->server(),
+                'table'      => $this->table(false),
+                'type'       => $type,
+            ]));
+        }
 
-    /**
-     * Execute an SQL statement and return the number of affected rows.
-     * This method is used to execute a non query SQL statement with parameters.
-     * If the SQL statement fails, an 'StatementException' exception is thrown.
-     *
-     * @param  string   $statement   The SQL statement to prepare and execute.
-     * @param  array    $parameters  Binding parameters of SQL statement.
-     * @param  integer  $type        The SQL statement type.
-     * @return PDOStatement
-     */
-    public function write($statement, array $parameters, $type)
-    {
+        if (empty($parameters)) {
+            $object = $this->connection()->query($statement);
+            if (!$object) {
+                throw new StatementException(
+                    $this->getErrorMessage(),
+                    Eorm::ERROR_STATEMENT,
+                    $statement,
+                    $this->server(),
+                    $this->table(false)
+                );
+            }
+        } else {
+            try {
+                $object = $this->connection()->prepare($statement);
+            } catch (Exception $e) {
+                throw new StatementException(
+                    $e->getMessage(),
+                    Eorm::ERROR_STATEMENT,
+                    $statement,
+                    $this->server(),
+                    $this->table(false),
+                    $parameters
+                );
+            }
+            if (!$object) {
+                throw new StatementException(
+                    $this->getErrorMessage(),
+                    Eorm::ERROR_STATEMENT,
+                    $statement,
+                    $this->server(),
+                    $this->table(false),
+                    $parameters
+                );
+            }
+            if (!$object->execute($parameters)) {
+                throw new StatementException(
+                    $this->getErrorMessage($object),
+                    Eorm::ERROR_STATEMENT,
+                    $statement,
+                    $this->server(),
+                    $this->table(false),
+                    $parameters
+                );
+            }
+        }
 
+        $object->setFetchMode($this->fetchModel);
+
+        return $object;
     }
 
     /**
@@ -263,13 +307,23 @@ class Actuator implements ActuatorInterface
     }
 
     /**
+     * Checks if inside a transaction.
+     *
+     * @return boolean
+     */
+    public function inTransaction()
+    {
+        return $this->connection()->inTransaction();
+    }
+
+    /**
      * Initiates a transaction.
      *
      * @return boolean
      */
     public function beginTransaction()
     {
-        if ($this->connection()->inTransaction()) {
+        if ($this->inTransaction()) {
             return true;
         } else {
             return $this->connection()->beginTransaction();
@@ -283,7 +337,7 @@ class Actuator implements ActuatorInterface
      */
     public function commit()
     {
-        if ($this->connection()->inTransaction()) {
+        if ($this->inTransaction()) {
             if ($this->connection()->commit()) {
                 return true;
             } else {
@@ -302,7 +356,7 @@ class Actuator implements ActuatorInterface
      */
     public function rollBack()
     {
-        if ($this->connection()->inTransaction()) {
+        if ($this->inTransaction()) {
             return $this->connection()->rollBack();
         } else {
             return false;
