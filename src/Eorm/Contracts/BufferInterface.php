@@ -12,67 +12,41 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Library;
+namespace Eorm\Contracts;
 
 /**
- *
+ * Eorm SQL statement parameter buffer component interface.
  */
-class Argument
+interface BufferInterface
 {
     /**
-     * [$stack description]
-     * @var array
+     * Push the binding parameters of the SQL statement.
+     * The binding parameter of the SQL statement must be a scalar.
+     *
+     * @param  array|string|number|boolean|null  $parameters  The binding parameters of SQL statement.
+     * @return Buffer
      */
-    protected $stack = [];
+    public function push($parameters);
 
     /**
-     * [__construct description]
-     * @param array $values [description]
+     * Gets the number of binding parameters that have been added.
+     *
+     * @return integer
      */
-    public function __construct($values = [])
-    {
-        $this->push($values);
-    }
+    public function count();
 
     /**
-     * [push description]
-     * @param  [type] $values [description]
-     * @return [type]         [description]
+     * Output all binding parameters.
+     *
+     * @param  boolean  $clean  Clean all binding parameters ? (no)
+     * @return array
      */
-    public function push($values)
-    {
-        foreach (Helper::toArray($values) as $value) {
-            $this->stack[] = Helper::toScalar($value);
-        }
-
-        return $this;
-    }
+    public function output($clean = false);
 
     /**
-     * [count description]
-     * @return [type] [description]
+     * Clean all binding parameters.
+     *
+     * @return Buffer
      */
-    public function count()
-    {
-        return count($this->stack);
-    }
-
-    /**
-     * [toArray description]
-     * @return [type] [description]
-     */
-    public function toArray()
-    {
-        return $this->stack;
-    }
-
-    /**
-     * [clean description]
-     * @return [type] [description]
-     */
-    public function clean()
-    {
-        $this->stack = [];
-        return $this;
-    }
+    public function clean();
 }
