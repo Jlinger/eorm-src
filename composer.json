@@ -4,7 +4,7 @@
 	"keywords": ["eorm", "orm", "edoger-orm"],
 	"license": "MIT",
 	"type": "library",
-	"homepage": "https://github.com/edoger/eorm",
+	"homepage": "https://github.com/edoger/eorm-src",
 	"authors": [
 		{
 			"name": "Qingshan Luo",
