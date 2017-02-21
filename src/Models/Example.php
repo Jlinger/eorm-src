@@ -25,7 +25,7 @@ class Example extends Model
      * Model associated database table name.
      * If set to NULL or not set, will use the model class name to lowercase as the default table name.
      *
-     * @var null
+     * @var string|null
      */
     protected $table = null;
 

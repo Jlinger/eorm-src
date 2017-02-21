@@ -133,7 +133,7 @@ class Event implements EventInterface
      * @param  string  $name  The Eorm event name.
      * @return boolean
      */
-    public static function exists($name)
+    public static function exist($name)
     {
         return !empty(self::$eventHandlers[$name]);
     }
