@@ -19,7 +19,7 @@ use Closure;
 /**
  *
  */
-class Kernel extends SchedulerInterface
+class Kernel
 {
     /**
      * The database server connections.
