@@ -40,13 +40,6 @@ class Actuator implements ActuatorInterface
     private static $actuatorInstanses = [];
 
     /**
-     * The database server connections.
-     *
-     * @var array
-     */
-    private static $serverConnections = [];
-
-    /**
      * The actuator associated database table name.
      *
      * @var string
@@ -104,18 +97,6 @@ class Actuator implements ActuatorInterface
         if ($connection instanceof PDO) {
             $this->connected = true;
         }
-    }
-
-    /**
-     * Add a database server connection.
-     *
-     * @param  Closure  $connection  Create PDO connection closure.
-     * @param  string   $name        The database server name.
-     * @return void
-     */
-    public static function addConnection(Closure $connection, $name)
-    {
-        self::$serverConnections[$name] = $connection;
     }
 
     /**

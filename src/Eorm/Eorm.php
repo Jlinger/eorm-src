@@ -17,7 +17,8 @@ namespace Eorm;
 use Closure;
 use Eorm\Contracts\EormInterface;
 use Eorm\Exceptions\ArgumentException;
-use Eorm\Foundation\Actuator;
+use Eorm\Foundation\Event;
+use Eorm\Foundation\Kernel;
 use PDO;
 
 /**
@@ -25,13 +26,10 @@ use PDO;
  */
 class Eorm implements EormInterface
 {
-
     /**
-     * Enabled state of the Eorm event system.
-     *
-     * @var boolean
+     * Eorm version string constant.
      */
-    private static $eventState = false;
+    const VERSION = '1.0.0-dev';
 
     /**
      * Gets Eorm version string.
@@ -44,7 +42,7 @@ class Eorm implements EormInterface
     }
 
     /**
-     * Add a database server connection.
+     * Bind a database server connection.
      * If you use a closure as the database server, then the closure must return a PDO object.
      * Duplicate connections are covered when added.
      *
@@ -52,14 +50,14 @@ class Eorm implements EormInterface
      * @param  string       $name        The database server connection name.
      * @return void
      */
-    public static function add($connection, $name = 'default')
+    public static function grip($connection, $name = 'default')
     {
         if ($connection instanceof Closure) {
-            Actuator::addConnection($connection, $name);
+            Kernel::bind($name, $connection);
         } elseif ($connection instanceof PDO) {
-            Actuator::addConnection(function () use ($connection) {
+            Kernel::bind($name, function () use ($connection) {
                 return $connection;
-            }, $name);
+            });
         } else {
             throw new ArgumentException(
                 "The connection must be a PDO object or a Closure.",
@@ -69,18 +67,47 @@ class Eorm implements EormInterface
     }
 
     /**
-     * Sets/Gets the enabled state of the Eorm event system.
-     * Gets the current event enabled state without passing any arguments or passing NULL.
+     * Sets the enabled state of the Eorm event system.
      *
-     * @param  boolean|null  $state  Enabled state of the Eorm event system.
+     * @param  boolean  $state  Enabled state of the Eorm event system.
      * @return boolean
      */
-    public static function event($state = null)
+    public static function event($state)
     {
-        if (is_bool($state)) {
-            self::$eventState = $state;
+        if ($state) {
+            Event::open();
+        } else {
+            Event::close();
         }
 
-        return self::$eventState;
+        return Event::state();
+    }
+
+    /**
+     * Register a Eorm event handler.
+     *
+     * @param  string                 $name     The Eorm event name.
+     * @param  EventHandlerInterface  $handler  The Eorm event handler.
+     * @return integer
+     */
+    public static function on($name, EventHandlerInterface $handler)
+    {
+        return Event::on(strtolower($name), $handler);
+    }
+
+    /**
+     * Delete a Eorm event handler.
+     *
+     * @param  string   $name   The Eorm event name.
+     * @param  boolean  $clean  Delete all event handlers ? (no)
+     * @return EventHandlerInterface|array|null
+     */
+    public static function off($name, $clean = false)
+    {
+        if ($clean) {
+            return Event::clean(strtolower($name));
+        } else {
+            return Event::off(strtolower($name));
+        }
     }
 }

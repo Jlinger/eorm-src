@@ -19,10 +19,6 @@ namespace Eorm\Contracts;
  */
 interface EormInterface
 {
-    /**
-     * Eorm version string constant.
-     */
-    const VERSION = '1.0.0-b1';
 
     const ERROR_RUNTIME       = 1001;
     const ERROR_CONNECT       = 1002;
