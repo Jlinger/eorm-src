@@ -19,6 +19,7 @@ use Eorm\Contracts\ActuatorInterface;
 use Eorm\Contracts\ModelInterface;
 use Eorm\Eorm;
 use Eorm\Event;
+use Eorm\Exceptions\ConfigurationException;
 use Eorm\Exceptions\ConnectException;
 use Eorm\Exceptions\StatementException;
 use Exception;
@@ -31,6 +32,20 @@ use Throwable;
  */
 class Actuator implements ActuatorInterface
 {
+    /**
+     * Model actuator instanses.
+     *
+     * @var array
+     */
+    private static $actuatorInstanses = [];
+
+    /**
+     * The database server connections.
+     *
+     * @var array
+     */
+    private static $serverConnections = [];
+
     /**
      * The actuator associated database table name.
      *
@@ -89,6 +104,48 @@ class Actuator implements ActuatorInterface
         if ($connection instanceof PDO) {
             $this->connected = true;
         }
+    }
+
+    /**
+     * Add a database server connection.
+     *
+     * @param  Closure  $connection  Create PDO connection closure.
+     * @param  string   $name        The database server name.
+     * @return void
+     */
+    public static function addConnection(Closure $connection, $name)
+    {
+        self::$serverConnections[$name] = $connection;
+    }
+
+    /**
+     * Gets Eorm model actuator instanse.
+     *
+     * @param  string  $abstract  Eorm model class fully qualified name.
+     * @return ActuatorInterface
+     */
+    public static function getActuator($abstract)
+    {
+        if (!isset(self::$actuatorInstanses[$abstract])) {
+            $model  = new $abstract();
+            $server = $model->getServer();
+
+            if (!isset(self::$serverConnections[$server])) {
+                throw new ConfigurationException(
+                    "The model associated database connection '{$server}' does not exist.",
+                    self::ERROR_CONFIGURATION,
+                    $abstract,
+                    'server'
+                );
+            }
+
+            self::$actuatorInstanses[$abstract] = new Actuator(
+                $model,
+                self::$serverConnections[$server]
+            );
+        }
+
+        return self::$actuatorInstanses[$abstract];
     }
 
     /**

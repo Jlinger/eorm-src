@@ -17,7 +17,6 @@ namespace Eorm;
 use Closure;
 use Eorm\Contracts\EormInterface;
 use Eorm\Exceptions\ArgumentException;
-use Eorm\Exceptions\ConfigurationException;
 use Eorm\Foundation\Actuator;
 use PDO;
 
@@ -26,19 +25,6 @@ use PDO;
  */
 class Eorm implements EormInterface
 {
-    /**
-     * Model actuator instanses.
-     *
-     * @var array
-     */
-    private static $actuators = [];
-
-    /**
-     * The database server connections.
-     *
-     * @var array
-     */
-    private static $connections = [];
 
     /**
      * Enabled state of the Eorm event system.
@@ -68,41 +54,18 @@ class Eorm implements EormInterface
      */
     public static function add($connection, $name = 'default')
     {
-        if ($connection instanceof PDO || $connection instanceof Closure) {
-            self::$connections[$name] = $connection;
+        if ($connection instanceof Closure) {
+            Actuator::addConnection($connection, $name);
+        } elseif ($connection instanceof PDO) {
+            Actuator::addConnection(function () use ($connection) {
+                return $connection;
+            }, $name);
         } else {
             throw new ArgumentException(
                 "The connection must be a PDO object or a Closure.",
                 self::ERROR_ARGUMENT
             );
         }
-    }
-
-    /**
-     * Gets Eorm model actuator instanse.
-     *
-     * @param  string  $abstract  Eorm model class fully qualified name.
-     * @return ActuatorInterface
-     */
-    public static function getActuator($abstract)
-    {
-        if (!isset(self::$actuators[$abstract])) {
-            $model  = new $abstract();
-            $server = $model->getServer();
-
-            if (!isset(self::$connections[$server])) {
-                throw new ConfigurationException(
-                    "The model associated database connection '{$server}' does not exist.",
-                    self::ERROR_CONFIGURATION,
-                    $abstract,
-                    'server'
-                );
-            }
-
-            self::$actuators[$abstract] = new Actuator($model, self::$connections[$server]);
-        }
-
-        return self::$actuators[$abstract];
     }
 
     /**

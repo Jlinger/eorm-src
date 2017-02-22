@@ -16,6 +16,7 @@ namespace Eorm;
 
 use Eorm\Contracts\ModelInterface;
 use Eorm\Exceptions\ConfigurationException;
+use Eorm\Foundation\Actuator;
 use Eorm\Library\Argument;
 use Eorm\Library\Builder;
 use Eorm\Library\Helper;
@@ -120,7 +121,7 @@ class Model implements ModelInterface
      */
     public static function table()
     {
-        return Eorm::getActuator(static::class)->table(false);
+        return Actuator::getActuator(static::class)->table(false);
     }
 
     /**
@@ -130,7 +131,7 @@ class Model implements ModelInterface
      */
     public static function primaryKey()
     {
-        return Eorm::getActuator(static::class)->primaryKey(false);
+        return Actuator::getActuator(static::class)->primaryKey(false);
     }
 
     /**
@@ -155,7 +156,7 @@ class Model implements ModelInterface
      */
     public static function find($ids)
     {
-        $actuator = Eorm::getActuator(static::class);
+        $actuator = Actuator::getActuator(static::class);
         $argument = new Argument($ids);
         $count    = $argument->count();
         $table    = $actuator->getTable();
@@ -175,7 +176,7 @@ class Model implements ModelInterface
      */
     public static function query($mode = true)
     {
-        return new Query(Eorm::getActuator(static::class), $mode);
+        return new Query(Actuator::getActuator(static::class), $mode);
     }
 
     /**
@@ -185,7 +186,7 @@ class Model implements ModelInterface
      */
     public static function all()
     {
-        $actuator = Eorm::getActuator(static::class);
+        $actuator = Actuator::getActuator(static::class);
         $table    = $actuator->getTable();
 
         return new Storage(
@@ -202,7 +203,7 @@ class Model implements ModelInterface
      */
     public static function create(array $columns)
     {
-        $actuator = Eorm::getActuator(static::class);
+        $actuator = Actuator::getActuator(static::class);
         $field    = Builder::makeField(array_keys($columns));
         $table    = $actuator->getTable();
         $columns  = Builder::normalizeInsertRows(array_values($columns));
@@ -234,7 +235,7 @@ class Model implements ModelInterface
      */
     public static function insert(array $columns)
     {
-        $actuator = Eorm::getActuator(static::class);
+        $actuator = Actuator::getActuator(static::class);
         $field    = Builder::makeField(array_keys($columns));
         $table    = $actuator->getTable();
         $columns  = Builder::normalizeInsertRows(array_values($columns));
@@ -260,7 +261,7 @@ class Model implements ModelInterface
      */
     public static function count($column = null, $distinct = false)
     {
-        $actuator = Eorm::getActuator(static::class);
+        $actuator = Actuator::getActuator(static::class);
         $table    = $actuator->getTable();
         $field    = Builder::makeCountField(
             is_null($column) ? $actuator->getPrimaryKey(false) : $column,
@@ -282,7 +283,7 @@ class Model implements ModelInterface
      */
     public static function destroy($ids)
     {
-        $actuator = Eorm::getActuator(static::class);
+        $actuator = Actuator::getActuator(static::class);
         $table    = $actuator->getTable();
         $argument = new Argument($ids);
         $count    = $argument->count();
@@ -300,7 +301,7 @@ class Model implements ModelInterface
      */
     public static function clean()
     {
-        $actuator = Eorm::getActuator(static::class);
+        $actuator = Actuator::getActuator(static::class);
         $actuator->fetch('TRUNCATE TABLE ' . $actuator->getTable());
 
         return true;
@@ -315,6 +316,6 @@ class Model implements ModelInterface
      */
     public static function transaction(\Closure $closure, $option = null)
     {
-        return Eorm::getActuator(static::class)->transaction($closure, $option);
+        return Actuator::getActuator(static::class)->transaction($closure, $option);
     }
 }
