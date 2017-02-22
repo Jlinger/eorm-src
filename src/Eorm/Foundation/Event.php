@@ -155,4 +155,24 @@ class Event implements EventInterface
             );
         }
     }
+
+    public static function open()
+    {
+
+    }
+
+    public static function close()
+    {
+
+    }
+
+    public static function clean()
+    {
+
+    }
+
+    public static function state()
+    {
+
+    }
 }
