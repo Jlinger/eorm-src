@@ -12,38 +12,37 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Contracts\Exceptions;
+namespace Eorm\Foundation;
+
+use Eorm\Contracts\Event\EventBodyInterface;
 
 /**
- * SQL statement execution exception class interface.
+ * Eorm event handler abstract class.
  */
-interface StatementExceptionInterface
+abstract class EventHandlerAbstract
 {
     /**
-     * Gets the Exception SQL statement.
+     * The Eorm event name.
+     *
+     * @var string
+     */
+    protected $name = '';
+
+    /**
+     * Gets Eorm event name.
      *
      * @return string
      */
-    public function getStatement();
+    public function name()
+    {
+        return $this->name;
+    }
 
     /**
-     * Gets the Exception database server name.
+     * Execute Eorm event handler.
      *
-     * @return string
+     * @param  EventBodyInterface  $event  The Eorm event body instanse.
+     * @return boolean
      */
-    public function getServer();
-
-    /**
-     * Gets the Exception database table name.
-     *
-     * @return string
-     */
-    public function getTable();
-
-    /**
-     * Gets the Exception bound SQL statement parameters.
-     *
-     * @return array
-     */
-    public function getParameters();
+    abstract public function handle(EventBodyInterface $event);
 }

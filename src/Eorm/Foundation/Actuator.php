@@ -19,7 +19,6 @@ use Eorm\Contracts\ActuatorInterface;
 use Eorm\Contracts\ModelInterface;
 use Eorm\Eorm;
 use Eorm\Event;
-use Eorm\Exceptions\ConfigurationException;
 use Eorm\Exceptions\ConnectException;
 use Eorm\Exceptions\StatementException;
 use Exception;
@@ -32,13 +31,6 @@ use Throwable;
  */
 class Actuator implements ActuatorInterface
 {
-    /**
-     * Model actuator instanses.
-     *
-     * @var array
-     */
-    private static $actuatorInstanses = [];
-
     /**
      * The actuator associated database table name.
      *
@@ -65,7 +57,7 @@ class Actuator implements ActuatorInterface
      *
      * @var PDO|Closure
      */
-    private $connection = null;
+    private $connection;
 
     /**
      * The actuator associated database connection is already connected.
@@ -87,46 +79,16 @@ class Actuator implements ActuatorInterface
      * @param ModelInterface  $abstract    Eorm model class fully qualified name.
      * @param PDO|Closure     $connection  Current actuator associated database server connection.
      */
-    public function __construct(ModelInterface $model, $connection)
+    public function __construct($table, $primaryKey, $server, $connection)
     {
-        $this->table      = $model->getTable();
-        $this->primaryKey = $model->getPrimaryKey();
-        $this->server     = $model->getServer();
+        $this->table      = $table;
+        $this->primaryKey = $primaryKey;
+        $this->server     = $server;
         $this->connection = $connection;
 
         if ($connection instanceof PDO) {
             $this->connected = true;
         }
-    }
-
-    /**
-     * Gets Eorm model actuator instanse.
-     *
-     * @param  string  $abstract  Eorm model class fully qualified name.
-     * @return ActuatorInterface
-     */
-    public static function getActuator($abstract)
-    {
-        if (!isset(self::$actuatorInstanses[$abstract])) {
-            $model  = new $abstract();
-            $server = $model->getServer();
-
-            if (!isset(self::$serverConnections[$server])) {
-                throw new ConfigurationException(
-                    "The model associated database connection '{$server}' does not exist.",
-                    self::ERROR_CONFIGURATION,
-                    $abstract,
-                    'server'
-                );
-            }
-
-            self::$actuatorInstanses[$abstract] = new Actuator(
-                $model,
-                self::$serverConnections[$server]
-            );
-        }
-
-        return self::$actuatorInstanses[$abstract];
     }
 
     /**

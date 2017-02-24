@@ -14,8 +14,6 @@
  */
 namespace Eorm;
 
-use Eorm\Contracts\ModelInterface;
-use Eorm\Exceptions\ConfigurationException;
 use Eorm\Foundation\Actuator;
 use Eorm\Library\Argument;
 use Eorm\Library\Builder;
@@ -28,7 +26,7 @@ use Eorm\Library\Where;
  * Eorm model base class.
  * All model classes should extends this class.
  */
-class Model implements ModelInterface
+class Model
 {
     /**
      * Default database table name.
@@ -52,76 +50,13 @@ class Model implements ModelInterface
     protected $server = 'default';
 
     /**
-     * Gets the model associated database table name.
-     *
-     * @return string
-     */
-    public function getTable()
-    {
-        if (is_string($this->table) && $this->table !== '') {
-            return $this->table;
-        }
-
-        if (is_null($this->table)) {
-            $split       = explode('\\', static::class);
-            $this->table = strtolower(end($split));
-            return $this->table;
-        }
-
-        throw new ConfigurationException(
-            "The model associated database table name must be a non empty string.",
-            Eorm::ERROR_CONFIGURATION,
-            static::class,
-            'table'
-        );
-    }
-
-    /**
-     * Gets model associated database table primary key name.
-     *
-     * @return string
-     */
-    public function getPrimaryKey()
-    {
-        if (is_string($this->primaryKey) && $this->primaryKey !== '') {
-            return $this->primaryKey;
-        }
-
-        throw new ConfigurationException(
-            "The model associated database table primary key name must be a non empty string.",
-            Eorm::ERROR_CONFIGURATION,
-            static::class,
-            'primaryKey'
-        );
-    }
-
-    /**
-     * Gets model associated database server name.
-     *
-     * @return string
-     */
-    public function getServer()
-    {
-        if (is_string($this->server) && $this->server !== '') {
-            return $this->server;
-        }
-
-        throw new ConfigurationException(
-            "The model associated database server name must be a non empty string.",
-            Eorm::ERROR_CONFIGURATION,
-            static::class,
-            'server'
-        );
-    }
-
-    /**
      * Get the current model using database table name.
      *
      * @return string
      */
     public static function table()
     {
-        return Actuator::getActuator(static::class)->table(false);
+        return Kernel::actuator(static::class)->table(false);
     }
 
     /**
@@ -131,7 +66,7 @@ class Model implements ModelInterface
      */
     public static function primaryKey()
     {
-        return Actuator::getActuator(static::class)->primaryKey(false);
+        return Kernel::actuator(static::class)->primaryKey(false);
     }
 
     /**

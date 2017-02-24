@@ -31,6 +31,12 @@ class Eorm implements EormInterface
      */
     const VERSION = '1.0.0-dev';
 
+    const ERROR_RUNTIME  = 1001;
+    const ERROR_CONF     = 1002;
+    const ERROR_ARGUMENT = 1003;
+    const ERROR_SQL      = 1004;
+    const ERROR_EVENT    = 1005;
+
     /**
      * Gets Eorm version string.
      *
@@ -72,15 +78,9 @@ class Eorm implements EormInterface
      * @param  boolean  $state  Enabled state of the Eorm event system.
      * @return boolean
      */
-    public static function event($state)
+    public static function event()
     {
-        if ($state) {
-            Event::open();
-        } else {
-            Event::close();
-        }
-
-        return Event::state();
+        return Kernel::event();
     }
 
     /**

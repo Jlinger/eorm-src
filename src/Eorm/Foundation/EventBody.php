@@ -14,12 +14,10 @@
  */
 namespace Eorm\Foundation;
 
-use Eorm\Contracts\Event\EventBodyInterface;
-
 /**
  * Eorm event body class.
  */
-class EventBody implements EventBodyInterface
+class EventBody
 {
     /**
      * The Eorm event name.

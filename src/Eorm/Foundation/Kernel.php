@@ -15,12 +15,17 @@
 namespace Eorm\Foundation;
 
 use Closure;
+use Eorm\Eorm;
+use Eorm\Exceptions\EormException;
 
 /**
  *
  */
 class Kernel
 {
+
+    private static $event = null;
+
     /**
      * The database server connections.
      *
@@ -56,21 +61,67 @@ class Kernel
     public static function actuator($abstract)
     {
         if (!isset(self::$actuators[$abstract])) {
-            $model  = new $abstract();
-            $server = $model->getServer();
+            $model = new $abstract();
+
+            list($table, $primaryKey, $server) = call_user_func(Closure::bind(function ($abstract) {
+                if (is_string($this->table) && $this->table !== '') {
+                    $table = $this->table;
+                } elseif (is_null($this->table)) {
+                    $split       = explode('\\', $abstract);
+                    $this->table = strtolower(end($split));
+                    $table       = $this->table;
+                } else {
+                    throw new EormException(
+                        "Model database table name must be a non empty string.",
+                        Eorm::ERROR_CONF
+                    );
+                }
+
+                if (is_string($this->primaryKey) && $this->primaryKey !== '') {
+                    $primaryKey = $this->primaryKey;
+                } else {
+                    throw new EormException(
+                        "Model database table primary key name must be a non empty string.",
+                        Eorm::ERROR_CONF
+                    );
+                }
+
+                if (is_string($this->server) && $this->server !== '') {
+                    $server = $this->server;
+                } else {
+                    throw new EormException(
+                        "Model database server name must be a non empty string.",
+                        Eorm::ERROR_CONF
+                    );
+                }
+
+                return [$table, $primaryKey, $server];
+            }, $model, $model), $abstract);
 
             if (!isset(self::$connections[$server])) {
-                throw new ConfigurationException(
-                    "The model associated database connection '{$server}' does not exist.",
-                    self::ERROR_CONFIGURATION,
-                    $abstract,
-                    'server'
+                throw new EormException(
+                    "Model database connection '{$server}' does not exist.",
+                    self::ERROR_CONF
                 );
             }
 
-            self::$actuators[$abstract] = new Actuator($model, self::$connections[$server]);
+            self::$actuators[$abstract] = new Actuator(
+                $table,
+                $primaryKey,
+                $server,
+                self::$connections[$server]
+            );
         }
 
         return self::$actuators[$abstract];
+    }
+
+    public static function event()
+    {
+        if (is_null(self::$event)) {
+            self::$event = new Event();
+        }
+
+        return self::$event;
     }
 }

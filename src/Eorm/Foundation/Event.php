@@ -14,9 +14,6 @@
  */
 namespace Eorm;
 
-use Eorm\Contracts\EventInterface;
-use Eorm\Contracts\Event\EventBodyInterface;
-use Eorm\Contracts\Event\EventHandlerInterface;
 use Eorm\Exceptions\EventException;
 use Exception;
 use Throwable;
@@ -24,14 +21,14 @@ use Throwable;
 /**
  * Eorm event manager class.
  */
-class Event implements EventInterface
+class Event
 {
     /**
      * All registered Eorm event handlers.
      *
      * @var array
      */
-    private static $eventHandlers = [
+    private $handlers = [
         'select'  => [],
         'update'  => [],
         'insert'  => [],
@@ -44,41 +41,47 @@ class Event implements EventInterface
     ];
 
     /**
-     * Register a Eorm event handler.
+     * Check whether a Eorm event has a handler.
+     * For an invalid Eorm event name, the method returns false.
      *
-     * @param  string                 $name     The Eorm event name.
-     * @param  EventHandlerInterface  $handler  The Eorm event handler.
-     * @return integer
+     * @param  string  $name  The Eorm event name.
+     * @return boolean
      */
-    public static function on($name, EventHandlerInterface $handler)
+    public function exist($name)
     {
-        self::check($name);
-
-        return array_unshift($this->eventHandlers[$name], $handler);
+        return !empty($this->handlers[$name]);
     }
 
     /**
-     * Delete a Eorm event handler.
+     * Register Eorm event handler.
      *
-     * @param  string   $name  The Eorm event name.
-     * @param  boolean  $all   Delete all event handlers ? (no)
-     * @return EventHandlerInterface|array|null
+     * @param  EventHandlerAbstract  $handler  The Eorm event handler.
+     * @return boolean
      */
-    public static function off($name, $all = false)
+    public function bind(EventHandlerAbstract $handler)
     {
-        self::check($name);
-
-        if (empty($this->eventHandlers[$name])) {
-            return null;
+        $name = $handler->name();
+        if ($name && isset($this->handlers[$name])) {
+            array_unshift($this->handlers[$name], $handler);
+            return true;
         } else {
-            if ($all) {
-                $handlers = $this->eventHandlers[$name];
+            return false;
+        }
+    }
 
-                $this->eventHandlers[$name] = [];
-                return $handlers;
-            } else {
-                return array_shift($this->eventHandlers[$name]);
-            }
+    /**
+     * Delete Eorm event handler.
+     *
+     * @param  string  $name  The Eorm event name.
+     * @return boolean
+     */
+    public function unbind($name)
+    {
+        if (isset($this->handlers[$name])) {
+            $this->handlers[$name] = [];
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -88,31 +91,19 @@ class Event implements EventInterface
      * @param  EventBodyInterface  $body  The Eorm event body instanse.
      * @return boolean
      */
-    public static function trigger(EventBodyInterface $body)
+    public function trigger(EventBody $body)
     {
         $name = $body->name();
-
-        self::check($name);
-        if (empty($this->eventHandlers[$name])) {
+        if (!$this->exist($name)) {
             return true;
         }
 
         try {
-            foreach ($this->eventHandlers[$name] as $handler) {
-                $state = $handler->handle($body);
-                if (!is_bool($state)) {
-                    throw new EventException(
-                        "The event handler must return a Boolean value.",
-                        Eorm::ERROR_EVENT,
-                        $name
-                    );
-                }
-
-                if ($state === false) {
+            foreach ($this->handlers[$name] as $handler) {
+                if ($handler->handle($body) !== true) {
                     break;
                 }
             }
-
             return true;
         } catch (EventException $e) {
             throw $e;
@@ -120,59 +111,8 @@ class Event implements EventInterface
             throw new EventException($e->getMessage(), Eorm::ERROR_EVENT, $name);
         } catch (Throwable $e) {
             throw new EventException($e->getMessage(), Eorm::ERROR_EVENT, $name);
-
         }
 
         return false;
-    }
-
-    /**
-     * Check whether a Eorm event has a handler.
-     * For an invalid Eorm event name, the method returns false.
-     *
-     * @param  string  $name  The Eorm event name.
-     * @return boolean
-     */
-    public static function exist($name)
-    {
-        return !empty(self::$eventHandlers[$name]);
-    }
-
-    /**
-     * Check whether a Eorm event name is valid.
-     * If the Eorm event name is invalid, an 'EventException' exception is thrown.
-     *
-     * @param  string  $name  The Eorm event name.
-     * @return void
-     */
-    private static function check($name)
-    {
-        if (!isset($this->eventHandlers[$name])) {
-            throw new EventException(
-                "Invalid event name '{$name}'.",
-                Eorm::ERROR_EVENT,
-                'event'
-            );
-        }
-    }
-
-    public static function open()
-    {
-
-    }
-
-    public static function close()
-    {
-
-    }
-
-    public static function clean()
-    {
-
-    }
-
-    public static function state()
-    {
-
     }
 }
