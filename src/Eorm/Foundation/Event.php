@@ -12,9 +12,10 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm;
+namespace Eorm\Foundation;
 
-use Eorm\Exceptions\EventException;
+use Eorm\Eorm;
+use Eorm\Exceptions\EormException;
 use Exception;
 use Throwable;
 
@@ -36,13 +37,13 @@ class Event
         'replace' => [],
         'clean'   => [],
         'count'   => [],
-        'exists'  => [],
+        'exist'   => [],
         'execute' => [],
     ];
 
     /**
      * Check whether a Eorm event has a handler.
-     * For an invalid Eorm event name, the method returns false.
+     * For an invalid event name, return false.
      *
      * @param  string  $name  The Eorm event name.
      * @return boolean
@@ -70,7 +71,7 @@ class Event
     }
 
     /**
-     * Delete Eorm event handler.
+     * Delete all Eorm event handler by event name.
      *
      * @param  string  $name  The Eorm event name.
      * @return boolean
@@ -86,7 +87,7 @@ class Event
     }
 
     /**
-     * Trigger a Eorm event.
+     * Trigger a Eorm event handler.
      *
      * @param  EventBodyInterface  $body  The Eorm event body instanse.
      * @return boolean
@@ -105,12 +106,12 @@ class Event
                 }
             }
             return true;
-        } catch (EventException $e) {
+        } catch (EormException $e) {
             throw $e;
         } catch (Exception $e) {
-            throw new EventException($e->getMessage(), Eorm::ERROR_EVENT, $name);
+            throw new EormException($e->getMessage(), Eorm::ERROR_EVENT);
         } catch (Throwable $e) {
-            throw new EventException($e->getMessage(), Eorm::ERROR_EVENT, $name);
+            throw new EormException($e->getMessage(), Eorm::ERROR_EVENT);
         }
 
         return false;
