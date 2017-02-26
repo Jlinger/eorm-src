@@ -15,16 +15,13 @@
 namespace Eorm;
 
 use Closure;
-use Eorm\Contracts\EormInterface;
-use Eorm\Exceptions\ArgumentException;
-use Eorm\Foundation\Event;
 use Eorm\Foundation\Kernel;
 use PDO;
 
 /**
- * Edoger ORM class.
+ * Edoger object relational mapping manager class.
  */
-class Eorm implements EormInterface
+class Eorm
 {
     /**
      * Eorm version string constant.
@@ -54,29 +51,25 @@ class Eorm implements EormInterface
      *
      * @param  PDO|Closure  $connection  Connected PDO connection object or a Closure.
      * @param  string       $name        The database server connection name.
-     * @return void
+     * @return boolean
      */
     public static function grip($connection, $name = 'default')
     {
         if ($connection instanceof Closure) {
-            Kernel::bind($name, $connection);
+            return Kernel::bind($name, $connection);
         } elseif ($connection instanceof PDO) {
-            Kernel::bind($name, function () use ($connection) {
+            return Kernel::bind($name, function () use ($connection) {
                 return $connection;
             });
         } else {
-            throw new ArgumentException(
-                "The connection must be a PDO object or a Closure.",
-                self::ERROR_ARGUMENT
-            );
+            return false;
         }
     }
 
     /**
-     * Sets the enabled state of the Eorm event system.
+     * Gets Eorm event instanse.
      *
-     * @param  boolean  $state  Enabled state of the Eorm event system.
-     * @return boolean
+     * @return Eorm\Foundation\Event
      */
     public static function event()
     {
@@ -86,28 +79,22 @@ class Eorm implements EormInterface
     /**
      * Register a Eorm event handler.
      *
-     * @param  string                 $name     The Eorm event name.
-     * @param  EventHandlerInterface  $handler  The Eorm event handler.
-     * @return integer
+     * @param  EventHandlerAbstract  $handler  The Eorm event handler.
+     * @return boolean
      */
-    public static function on($name, EventHandlerInterface $handler)
+    public static function on(EventHandlerAbstract $handler)
     {
-        return Event::on(strtolower($name), $handler);
+        return Kernel::event()->bind($handler);
     }
 
     /**
-     * Delete a Eorm event handler.
+     * Delete all Eorm event handler by event name.
      *
-     * @param  string   $name   The Eorm event name.
-     * @param  boolean  $clean  Delete all event handlers ? (no)
-     * @return EventHandlerInterface|array|null
+     * @param  string  $name  The Eorm event name.
+     * @return boolean
      */
-    public static function off($name, $clean = false)
+    public static function off($name)
     {
-        if ($clean) {
-            return Event::clean(strtolower($name));
-        } else {
-            return Event::off(strtolower($name));
-        }
+        return Kernel::event()->off(strtolower($name));
     }
 }
