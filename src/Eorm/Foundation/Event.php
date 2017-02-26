@@ -89,10 +89,10 @@ class Event
     /**
      * Trigger a Eorm event handler.
      *
-     * @param  EventBodyInterface  $body  The Eorm event body instanse.
+     * @param  Body  $body  The Eorm event body instanse.
      * @return boolean
      */
-    public function trigger(EventBody $body)
+    public function trigger(Body $body)
     {
         $name = $body->name();
         if (!$this->exist($name)) {

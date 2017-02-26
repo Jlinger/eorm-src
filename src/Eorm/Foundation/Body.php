@@ -17,7 +17,7 @@ namespace Eorm\Foundation;
 /**
  * Eorm event body class.
  */
-class EventBody
+class Body
 {
     /**
      * The Eorm event name.
