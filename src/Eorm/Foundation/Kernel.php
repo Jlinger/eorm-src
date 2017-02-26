@@ -19,11 +19,15 @@ use Eorm\Eorm;
 use Eorm\Exceptions\EormException;
 
 /**
- *
+ * The Eorm kernel class.
  */
 class Kernel
 {
-
+    /**
+     * The Eorm event manager instanse.
+     *
+     * @var Eorm\Foundation\Event
+     */
     private static $event = null;
 
     /**
@@ -45,62 +49,46 @@ class Kernel
      *
      * @param  string   $name        The database server name.
      * @param  Closure  $connection  The database server connection closure.
-     * @return void
+     * @return boolean
      */
     public static function bind($name, Closure $connection)
     {
         self::$connections[$name] = $connection;
+
+        return true;
     }
 
     /**
      * Gets Eorm model actuator instanse.
      *
      * @param  string  $abstract  Eorm model class fully qualified name.
-     * @return ActuatorInterface
+     * @return Eorm\Foundation\Actuator
      */
     public static function actuator($abstract)
     {
         if (!isset(self::$actuators[$abstract])) {
             $model = new $abstract();
+            $conf  = call_user_func(
+                Closure::bind(
+                    function () {
+                        return [
+                            $this->table,
+                            $this->primaryKey,
+                            $this->server,
+                        ];
+                    },
+                    $model,
+                    $model
+                )
+            );
 
-            list($table, $primaryKey, $server) = call_user_func(Closure::bind(function ($abstract) {
-                if (is_string($this->table) && $this->table !== '') {
-                    $table = $this->table;
-                } elseif (is_null($this->table)) {
-                    $split       = explode('\\', $abstract);
-                    $this->table = strtolower(end($split));
-                    $table       = $this->table;
-                } else {
-                    throw new EormException(
-                        "Model database table name must be a non empty string.",
-                        Eorm::ERROR_CONF
-                    );
-                }
-
-                if (is_string($this->primaryKey) && $this->primaryKey !== '') {
-                    $primaryKey = $this->primaryKey;
-                } else {
-                    throw new EormException(
-                        "Model database table primary key name must be a non empty string.",
-                        Eorm::ERROR_CONF
-                    );
-                }
-
-                if (is_string($this->server) && $this->server !== '') {
-                    $server = $this->server;
-                } else {
-                    throw new EormException(
-                        "Model database server name must be a non empty string.",
-                        Eorm::ERROR_CONF
-                    );
-                }
-
-                return [$table, $primaryKey, $server];
-            }, $model, $model), $abstract);
+            $table      = self::parseTable($conf[0], $abstract);
+            $primaryKey = self::parsePrimaryKey($conf[1], $abstract);
+            $server     = self::parseServer($conf[2], $abstract);
 
             if (!isset(self::$connections[$server])) {
                 throw new EormException(
-                    "Model database connection '{$server}' does not exist.",
+                    "Model '{$abstract}' connection '{$server}' does not exist.",
                     self::ERROR_CONF
                 );
             }
@@ -116,6 +104,11 @@ class Kernel
         return self::$actuators[$abstract];
     }
 
+    /**
+     * Gets Eorm event instanse.
+     *
+     * @return Eorm\Foundation\Event
+     */
     public static function event()
     {
         if (is_null(self::$event)) {
@@ -123,5 +116,68 @@ class Kernel
         }
 
         return self::$event;
+    }
+
+    /**
+     * Parse table name of model.
+     *
+     * @param  string|null  $table     Eorm model table name.
+     * @param  string       $abstract  Eorm model class fully qualified name.
+     * @return string
+     */
+    private static function parseTable($table, $abstract)
+    {
+        if (is_string($table)) {
+            return $table;
+        } elseif (is_null($table)) {
+            return strtolower(array_slice(explode('\\', $abstract), -1, 1, false)[0]);
+        } else {
+            throw new EormException(
+                "Model '{$abstract}' table name must be a string or null.",
+                Eorm::ERROR_CONF
+            );
+        }
+    }
+
+    /**
+     * Parse primary key of model.
+     *
+     * @param  string|null  $primaryKey  Eorm model primary key.
+     * @param  string       $abstract    Eorm model class fully qualified name.
+     * @return string
+     */
+    private static function parsePrimaryKey($primaryKey, $abstract)
+    {
+        if (is_string($primaryKey)) {
+            return $primaryKey;
+        } elseif (is_null($primaryKey)) {
+            return 'id';
+        } else {
+            throw new EormException(
+                "Model '{$abstract}' primary key name must be a string or null.",
+                Eorm::ERROR_CONF
+            );
+        }
+    }
+
+    /**
+     * Parse server name of model.
+     *
+     * @param  string|null  $server    Eorm model server name.
+     * @param  string       $abstract  Eorm model class fully qualified name.
+     * @return string
+     */
+    private static function parseServer($server, $abstract)
+    {
+        if (is_string($server)) {
+            return $server;
+        } elseif (is_null($server)) {
+            return 'default';
+        } else {
+            throw new EormException(
+                "Model '{$abstract}' server name must be a string or null.",
+                Eorm::ERROR_CONF
+            );
+        }
     }
 }
