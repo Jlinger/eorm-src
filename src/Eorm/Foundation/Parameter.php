@@ -14,14 +14,13 @@
  */
 namespace Eorm\Foundation;
 
-use Eorm\Contracts\BufferInterface;
 use Eorm\Eorm;
-use Eorm\Exceptions\ArgumentException;
+use Eorm\Exceptions\EormException;
 
 /**
- * Eorm SQL statement parameter buffer component.
+ * Eorm SQL statement parameter manager class.
  */
-class Buffer implements BufferInterface
+class Parameter
 {
     /**
      * The binding parameters of SQL statement.
@@ -31,23 +30,29 @@ class Buffer implements BufferInterface
     protected $parameters = [];
 
     /**
-     * Initialize this buffer instanse.
+     * Initialize this parameter manager instanse.
      *
-     * @param array|string|number|boolean|null  $parameters  The binding parameters of SQL statement.
+     * @param array|string|number|boolean|null  $params  The binding parameters of SQL statement.
      */
-    public function __construct($parameters = [])
+    public function __construct($params = [])
     {
-        $this->push($parameters);
+        if (is_array($params)) {
+            if (!empty($params)) {
+                $this->pushMany($params);
+            }
+        } else {
+            $this->push($params);
+        }
     }
 
     /**
-     * Push the binding parameters of the SQL statement.
+     * Push a binding parameter of the SQL statement.
      * The binding parameter of the SQL statement must be a scalar.
      *
-     * @param  array|string|number|boolean|null  $parameters  The binding parameters of SQL statement.
-     * @return Buffer
+     * @param  string|number|boolean|null  $param  The binding parameter of SQL statement.
+     * @return Eorm\Foundation\Parameter
      */
-    public function push($parameter)
+    public function push($param)
     {
         if (is_string($parameter) || is_numeric($parameter)) {
             $this->parameters[] = $parameter;
@@ -56,7 +61,7 @@ class Buffer implements BufferInterface
         } elseif (is_null($value)) {
             $this->parameters[] = '';
         } else {
-            throw new ArgumentException(
+            throw new EormException(
                 "The binding parameter of the SQL statement must be a scalar.",
                 Eorm::ERROR_ARGUMENT
             );
@@ -65,7 +70,13 @@ class Buffer implements BufferInterface
         return $this;
     }
 
-    public function pushMany(array $parameters)
+    /**
+     * Push multiple binding parameters of the SQL statement.
+     *
+     * @param  array  $params  The binding parameters of SQL statement.
+     * @return Eorm\Foundation\Parameter
+     */
+    public function pushMany(array $params)
     {
         foreach ($parameters as $parameter) {
             $this->push($parameter);
@@ -74,9 +85,15 @@ class Buffer implements BufferInterface
         return $this;
     }
 
-    public function merge(BufferInterface $buffer)
+    /**
+     * Merge parameter.
+     *
+     * @param  Eorm\Foundation\Parameter  $parameter  The SQL statement parameter.
+     * @return Eorm\Foundation\Parameter
+     */
+    public function merge(Parameter $parameter)
     {
-        $this->pushMany($buffer->output());
+        $this->pushMany($parameter->toArray());
 
         return $this;
     }
@@ -97,7 +114,7 @@ class Buffer implements BufferInterface
      * @param  boolean  $clean  Clean all binding parameters ? (no)
      * @return array
      */
-    public function output($clean = false)
+    public function toArray($clean = false)
     {
         if ($clean) {
             $parameters = $this->parameters;
@@ -112,7 +129,7 @@ class Buffer implements BufferInterface
     /**
      * Clean all binding parameters.
      *
-     * @return Buffer
+     * @return Eorm\Foundation\Parameter
      */
     public function clean()
     {
