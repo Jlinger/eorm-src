@@ -14,8 +14,6 @@
  */
 namespace Eorm\Foundation;
 
-use Eorm\Contracts\Event\EventBodyInterface;
-
 /**
  * Eorm event handler abstract class.
  */
@@ -27,6 +25,16 @@ abstract class EventHandlerAbstract
      * @var string
      */
     protected $name = '';
+
+    /**
+     * Initialize this event handler instanse.
+     *
+     * @param string  $name  The Eorm event name.
+     */
+    public function __construct($name)
+    {
+        $this->name = $name;
+    }
 
     /**
      * Gets Eorm event name.
@@ -41,8 +49,8 @@ abstract class EventHandlerAbstract
     /**
      * Execute Eorm event handler.
      *
-     * @param  EventBodyInterface  $event  The Eorm event body instanse.
+     * @param  Eorm\Foundation\Body  $event  The Eorm event body instanse.
      * @return boolean
      */
-    abstract public function handle(EventBodyInterface $event);
+    abstract public function handle(Body $body);
 }
