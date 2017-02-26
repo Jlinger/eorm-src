@@ -17,6 +17,7 @@ namespace Eorm\Builder;
 use Eorm\Builder\Foundation\BuilderAbstract;
 use Eorm\Builder\Foundation\Traits\Condition;
 use Eorm\Builder\Foundation\Traits\Limit;
+use Eorm\Library\Helper;
 
 /**
  *
