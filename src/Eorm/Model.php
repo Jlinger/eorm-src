@@ -91,7 +91,7 @@ class Model
      */
     public static function find($ids)
     {
-        $actuator = Actuator::getActuator(static::class);
+        $actuator = Kernel::actuator(static::class);
         $argument = new Argument($ids);
         $count    = $argument->count();
         $table    = $actuator->getTable();
@@ -111,7 +111,7 @@ class Model
      */
     public static function query($mode = true)
     {
-        return new Query(Actuator::getActuator(static::class), $mode);
+        return new Query(Kernel::actuator(static::class), $mode);
     }
 
     /**
@@ -121,7 +121,7 @@ class Model
      */
     public static function all()
     {
-        $actuator = Actuator::getActuator(static::class);
+        $actuator = Kernel::actuator(static::class);
         $table    = $actuator->getTable();
 
         return new Storage(
@@ -138,7 +138,7 @@ class Model
      */
     public static function create(array $columns)
     {
-        $actuator = Actuator::getActuator(static::class);
+        $actuator = Kernel::actuator(static::class);
         $field    = Builder::makeField(array_keys($columns));
         $table    = $actuator->getTable();
         $columns  = Builder::normalizeInsertRows(array_values($columns));
@@ -170,7 +170,7 @@ class Model
      */
     public static function insert(array $columns)
     {
-        $actuator = Actuator::getActuator(static::class);
+        $actuator = Kernel::actuator(static::class);
         $field    = Builder::makeField(array_keys($columns));
         $table    = $actuator->getTable();
         $columns  = Builder::normalizeInsertRows(array_values($columns));
@@ -196,7 +196,7 @@ class Model
      */
     public static function count($column = null, $distinct = false)
     {
-        $actuator = Actuator::getActuator(static::class);
+        $actuator = Kernel::actuator(static::class);
         $table    = $actuator->getTable();
         $field    = Builder::makeCountField(
             is_null($column) ? $actuator->getPrimaryKey(false) : $column,
@@ -218,7 +218,7 @@ class Model
      */
     public static function destroy($ids)
     {
-        $actuator = Actuator::getActuator(static::class);
+        $actuator = Kernel::actuator(static::class);
         $table    = $actuator->getTable();
         $argument = new Argument($ids);
         $count    = $argument->count();
@@ -236,7 +236,7 @@ class Model
      */
     public static function clean()
     {
-        $actuator = Actuator::getActuator(static::class);
+        $actuator = Kernel::actuator(static::class);
         $actuator->fetch('TRUNCATE TABLE ' . $actuator->getTable());
 
         return true;
@@ -251,6 +251,6 @@ class Model
      */
     public static function transaction(\Closure $closure, $option = null)
     {
-        return Actuator::getActuator(static::class)->transaction($closure, $option);
+        return Kernel::actuator(static::class)->transaction($closure, $option);
     }
 }

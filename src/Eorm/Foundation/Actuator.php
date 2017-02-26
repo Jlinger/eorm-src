@@ -15,11 +15,10 @@
 namespace Eorm\Foundation;
 
 use Closure;
-use Eorm\Contracts\ActuatorInterface;
 use Eorm\Contracts\ModelInterface;
 use Eorm\Eorm;
 use Eorm\Event;
-use Eorm\Exceptions\ConnectException;
+use Eorm\Exceptions\EormException;
 use Eorm\Exceptions\StatementException;
 use Exception;
 use PDO;
@@ -29,7 +28,7 @@ use Throwable;
 /**
  * Eorm SQL statement actuator class.
  */
-class Actuator implements ActuatorInterface
+class Actuator
 {
     /**
      * The actuator associated database table name.
@@ -67,28 +66,17 @@ class Actuator implements ActuatorInterface
     private $connected = false;
 
     /**
-     * The fetch mode for all PDOstatement object.
-     *
-     * @var integer
-     */
-    private $fetchModel = PDO::FETCH_ASSOC;
-
-    /**
      * Initialize this actuator instanse.
      *
      * @param ModelInterface  $abstract    Eorm model class fully qualified name.
-     * @param PDO|Closure     $connection  Current actuator associated database server connection.
+     * @param Closure         $connection  Current actuator associated database server connection.
      */
-    public function __construct($table, $primaryKey, $server, $connection)
+    public function __construct($table, $primaryKey, $server, Closure $connection)
     {
         $this->table      = $table;
         $this->primaryKey = $primaryKey;
         $this->server     = $server;
         $this->connection = $connection;
-
-        if ($connection instanceof PDO) {
-            $this->connected = true;
-        }
     }
 
     /**
@@ -142,22 +130,23 @@ class Actuator implements ActuatorInterface
             return $this->connection;
         }
 
+        $server = $this->server();
+
         try {
-            $connection = call_user_func($this->connection, $this->server());
+            $connection = call_user_func($this->connection, $server);
         } catch (Exception $e) {
-            throw new ConnectException($e->getMessage(), Eorm::ERROR_CONNECT, $this->server());
+            throw new EormException($e->getMessage(), Eorm::ERROR_CONF);
         } catch (Throwable $e) {
-            throw new ConnectException($e->getMessage(), Eorm::ERROR_CONNECT, $this->server());
+            throw new EormException($e->getMessage(), Eorm::ERROR_CONF);
         }
 
         if ($connection instanceof PDO) {
             $this->connection = $connection;
             $this->connected  = true;
         } else {
-            throw new ConnectException(
-                "Connection closure must return a PDO connection object.",
-                Eorm::ERROR_CONNECT,
-                $this->server()
+            throw new EormException(
+                "The Eorm server '{$server}' connection must be a PDO instanse.",
+                Eorm::ERROR_CONF
             );
         }
 
@@ -175,29 +164,27 @@ class Actuator implements ActuatorInterface
      */
     public function execute($statement, $type)
     {
-        if (Eorm::event()) {
-            if (Event::exists($type)) {
-                Event::trigger(new EventBody($type, [
-                    'statement'  => $statement,
-                    'parameters' => [],
-                    'server'     => $this->server(),
-                    'table'      => $this->table(false),
-                    'type'       => $type,
-                ]));
-            }
-
-            if (Event::exists('execute')) {
-                Event::trigger(new EventBody('execute', [
-                    'statement'  => $statement,
-                    'parameters' => $parameters,
-                    'server'     => $this->server(),
-                    'table'      => $this->table(false),
-                    'type'       => $type,
-                ]));
-            }
+        if (Kernel::event()->exist('execute')) {
+            Kernel::event()->trigger(new Body('execute', [
+                'statement'  => $statement,
+                'parameters' => [],
+                'server'     => $this->server(),
+                'table'      => $this->table(false),
+                'type'       => $type,
+            ]));
         }
 
-        $rows = $this->connection()->query($statement);
+        if (Kernel::event()->exist($type)) {
+            Kernel::event()->trigger(new Body($type, [
+                'statement'  => $statement,
+                'parameters' => [],
+                'server'     => $this->server(),
+                'table'      => $this->table(false),
+                'type'       => $type,
+            ]));
+        }
+
+        $rows = $this->connection()->exec($statement);
         if (!is_int($rows)) {
             if ($this->hasError()) {
                 throw new StatementException(
@@ -294,7 +281,7 @@ class Actuator implements ActuatorInterface
             }
         }
 
-        $object->setFetchMode($this->fetchModel);
+        $object->setFetchMode(PDO::FETCH_ASSOC);
 
         return $object;
     }

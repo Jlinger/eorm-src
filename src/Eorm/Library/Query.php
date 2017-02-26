@@ -14,9 +14,7 @@
  */
 namespace Eorm\Library;
 
-use Closure;
 use Eorm\Library\Actuator;
-use InvalidArgumentException;
 use PDO;
 
 /**
@@ -34,41 +32,17 @@ class Query
      * [$mode description]
      * @var [type]
      */
-    protected $mode;
-
-    /**
-     * [$where description]
-     * @var null
-     */
-    protected $where = null;
-
-    /**
-     * [$limit description]
-     * @var integer
-     */
-    protected $limit = 0;
-
-    /**
-     * [$skip description]
-     * @var integer
-     */
-    protected $skip = 0;
-
-    /**
-     * [$orderBy description]
-     * @var array
-     */
-    protected $orderBy = [];
+    protected $select;
 
     /**
      * [__construct description]
      * @param Actuator $actuator [description]
-     * @param boolean  $mode     [description]
+     * @param Select   $select   [description]
      */
-    public function __construct(Actuator $actuator, $mode = true)
+    public function __construct(Actuator $actuator, Select $select)
     {
-        $this->mode     = $mode;
         $this->actuator = $actuator;
+        $this->select   = $select;
     }
 
     /**
@@ -80,60 +54,44 @@ class Query
      */
     public function where($target, $value = null, $option = true)
     {
-        if (is_null($this->where)) {
-            $this->where = new Where($this->mode);
-        }
-
-        if (is_string($target)) {
-            $this->where->compare($target, $value, $option);
-        } elseif ($target instanceof Closure) {
-            if (is_bool($value)) {
-                $this->where->group($target, $value);
-            } else {
-                $target($this->where);
-            }
-        } else {
-            throw new InvalidArgumentException("The condition target must be a string or a closure.");
-        }
+        $this->select->where($target, $value, $option);
 
         return $this;
     }
 
     /**
      * [orderBy description]
-     * @param  [type]  $column [description]
+     * @param  [type]  $field  [description]
      * @param  boolean $ascend [description]
      * @return [type]          [description]
      */
-    public function orderBy($column, $ascend = true)
+    public function orderBy($field, $ascend = true)
     {
-        $formattedColumn = Helper::format($target);
-        $order           = $ascend ? 'ASC' : 'DESC';
+        $this->select->orderBy($field, $ascend);
 
-        $this->orderBy[$column] = "{$formattedColumn} {$order}";
         return $this;
     }
 
     /**
      * [limit description]
-     * @param  [type] $num [description]
+     * @param  [type] $count [description]
      * @return [type]      [description]
      */
-    public function limit($num)
+    public function limit($count)
     {
-        $this->limit = intval($num);
+        $this->select->limit($count);
 
         return $this;
     }
 
     /**
      * [skip description]
-     * @param  [type] $num [description]
+     * @param  [type] $count [description]
      * @return [type]      [description]
      */
-    public function skip($num)
+    public function skip($count)
     {
-        $this->skip = intval($num);
+        $this->select->skip($count);
 
         return $this;
     }
@@ -142,43 +100,34 @@ class Query
      * [get description]
      * @return [type] [description]
      */
-    public function get()
+    public function get(array $fields = [])
     {
-        $table    = $this->actuator->getTable();
-        $sql      = "SELECT * FROM {$table}";
-        $argument = null;
-
-        if ($this->where) {
-            $where = $this->where->toString();
-            if ($where) {
-                $sql      = "{$sql} WHERE {$where}";
-                $argument = new Argument($this->where->getArgument());
+        if (!empty($fields)) {
+            foreach ($fields as $key => $value) {
+                if (is_numeric($key)) {
+                    $this->select->field($value);
+                } else {
+                    $this->select->field($value, $key);
+                }
             }
         }
 
-        if (!empty($this->orderBy)) {
-            $orderBy = Helper::join($this->orderBy);
-            $sql     = "{$sql} ORDER BY {$orderBy}";
-        }
-
-        if ($this->limit) {
-            if ($this->skip) {
-                $sql = "{$sql} LIMIT {$this->skip},{$this->limit}";
-            } else {
-                $sql = "{$sql} LIMIT {$this->limit}";
-            }
-        }
-
-        return new Storage($this->actuator->fetch($sql, $argument), $this->actuator);
+        return new Storage(
+            $this->actuator->query(
+                $this->select->build(),
+                $this->parameter()->toArray()
+            ),
+            $this->actuator
+        );
     }
 
     /**
      * [one description]
      * @return [type] [description]
      */
-    public function one()
+    public function one(array $fields = [])
     {
-        return $this->limit(1)->skip(0)->get();
+        return $this->limit(1)->skip(0)->get($fields);
     }
 
     /**
@@ -211,7 +160,7 @@ class Query
      * [exists description]
      * @return [type] [description]
      */
-    public function exists()
+    public function exist()
     {
         $field    = $this->actuator->getPrimaryKey();
         $table    = $this->actuator->getTable();
