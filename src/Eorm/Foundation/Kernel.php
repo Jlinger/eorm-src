@@ -38,11 +38,11 @@ class Kernel
     private static $connections = [];
 
     /**
-     * Model actuator instanses.
+     * Model executor instanses.
      *
      * @var array
      */
-    private static $actuators = [];
+    private static $executors = [];
 
     /**
      * Bind a database server connection.
@@ -59,23 +59,19 @@ class Kernel
     }
 
     /**
-     * Gets Eorm model actuator instanse.
+     * Gets SQL statement executor instance.
      *
-     * @param  string  $abstract  Eorm model class fully qualified name.
-     * @return Eorm\Foundation\Actuator
+     * @param  string  $abstract  The Eorm model class fully qualified name.
+     * @return Executor
      */
-    public static function actuator($abstract)
+    public static function executor($abstract)
     {
-        if (!isset(self::$actuators[$abstract])) {
+        if (!isset(self::$executors[$abstract])) {
             $model = new $abstract();
             $conf  = call_user_func(
                 Closure::bind(
                     function () {
-                        return [
-                            $this->table,
-                            $this->primaryKey,
-                            $this->server,
-                        ];
+                        return [$this->table, $this->primaryKey, $this->server];
                     },
                     $model,
                     $model
@@ -93,7 +89,7 @@ class Kernel
                 );
             }
 
-            self::$actuators[$abstract] = new Actuator(
+            self::$executors[$abstract] = new Actuator(
                 $table,
                 $primaryKey,
                 $server,
@@ -101,7 +97,7 @@ class Kernel
             );
         }
 
-        return self::$actuators[$abstract];
+        return self::$executors[$abstract];
     }
 
     /**
