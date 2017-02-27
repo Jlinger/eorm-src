@@ -15,15 +15,15 @@
 namespace Eorm\Builder;
 
 use Eorm\Builder\Foundation\BuilderAbstract;
+use Eorm\Builder\Foundation\Traits\Astriction;
 use Eorm\Builder\Foundation\Traits\Condition;
-use Eorm\Builder\Foundation\Traits\Limit;
 
 /**
  *
  */
 class Delete extends BuilderAbstract
 {
-    use Condition, Limit;
+    use Condition, Astriction;
 
     /**
      * [$type description]

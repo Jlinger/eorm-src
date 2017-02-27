@@ -17,7 +17,7 @@ namespace Eorm\Builder\Foundation\Traits;
 /**
  *
  */
-trait Limit
+trait Astriction
 {
     /**
      * [$limit description]
