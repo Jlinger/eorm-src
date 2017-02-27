@@ -14,7 +14,6 @@
  */
 namespace Eorm;
 
-use Closure;
 use Eorm\Library\Actuator;
 use Eorm\Library\Argument;
 use Eorm\Library\Builder;
@@ -25,32 +24,33 @@ use Eorm\Library\Where;
 
 /**
  * Eorm Model Base Class.
+ * All Model Classes Should Extends This Class.
  */
 class Eorm
 {
     /**
-     * All model actuator instanses.
+     * Model actuator instanses.
      *
      * @var array
      */
     private static $actuators = [];
 
     /**
-     * Default table name.
+     * Default database table name.
      *
      * @var null
      */
     protected $table = null;
 
     /**
-     * Default table primary key name.
+     * Default database table primary key name.
      *
      * @var string
      */
     protected $primaryKey = 'id';
 
     /**
-     * Default server name.
+     * Default database server name.
      *
      * @var string
      */
@@ -72,7 +72,7 @@ class Eorm
     }
 
     /**
-     * Get table name.
+     * Get database table name.
      *
      * @return string
      */
@@ -82,7 +82,7 @@ class Eorm
     }
 
     /**
-     * Get table primary key name.
+     * Get database table primary key name.
      *
      * @return string
      */
@@ -94,8 +94,8 @@ class Eorm
     /**
      * Create a Query instanse, and set a SQL where condition.
      *
-     * @param  string|Closure  $target  The field name.
-     * @param  mixed           $value   The condition value.
+     * @param  string|Closure  $target  The field name or a closure.
+     * @param  mixed           $value   The condition value or where mode.
      * @param  boolean|string  $option  The connector.
      * @param  boolean         $mode    The where mode.
      * @return Query
@@ -106,9 +106,10 @@ class Eorm
     }
 
     /**
-     * [find description]
-     * @param  [type] $ids [description]
-     * @return [type]      [description]
+     * Query data by primary key.
+     *
+     * @param  integer|array  $ids  The primary keys.
+     * @return Storage
      */
     public static function find($ids)
     {
@@ -125,9 +126,10 @@ class Eorm
     }
 
     /**
-     * [query description]
-     * @param  boolean $mode [description]
-     * @return [type]        [description]
+     * Create a Query instanse.
+     *
+     * @param  boolean  $mode  The where mode.
+     * @return Query
      */
     public static function query($mode = true)
     {
@@ -135,8 +137,9 @@ class Eorm
     }
 
     /**
-     * [all description]
-     * @return [type] [description]
+     * Query all data.
+     *
+     * @return Storage
      */
     public static function all()
     {
@@ -150,9 +153,10 @@ class Eorm
     }
 
     /**
-     * [create description]
-     * @param  array  $columns [description]
-     * @return [type]          [description]
+     * Insert some rows and return storage.
+     *
+     * @param  array  $columns  The columns data.
+     * @return Storage
      */
     public static function create(array $columns)
     {
@@ -181,9 +185,10 @@ class Eorm
     }
 
     /**
-     * [insert description]
-     * @param  array  $columns [description]
-     * @return [type]          [description]
+     * Insert some rows and return primary keys.
+     *
+     * @param  array  $columns  The columns data.
+     * @return array|integer
      */
     public static function insert(array $columns)
     {
@@ -205,10 +210,11 @@ class Eorm
     }
 
     /**
-     * [count description]
-     * @param  [type]  $column   [description]
-     * @param  boolean $distinct [description]
-     * @return [type]            [description]
+     * Query total number of rows by column name or primary key(default).
+     *
+     * @param  string|null  $column    The column name.
+     * @param  boolean      $distinct  Eliminate duplicate data ? (no)
+     * @return integer
      */
     public static function count($column = null, $distinct = false)
     {
@@ -227,9 +233,10 @@ class Eorm
     }
 
     /**
-     * [destroy description]
-     * @param  [type] $ids [description]
-     * @return [type]      [description]
+     * Delete data by primary key.
+     *
+     * @param  integer|array  $ids  The primary keys.
+     * @return integer
      */
     public static function destroy($ids)
     {
@@ -245,8 +252,9 @@ class Eorm
     }
 
     /**
-     * [clean description]
-     * @return [type] [description]
+     * Clean all data.
+     *
+     * @return boolean
      */
     public static function clean()
     {
@@ -257,12 +265,13 @@ class Eorm
     }
 
     /**
-     * [transaction description]
-     * @param  Closure $closure [description]
-     * @param  [type]  $option  [description]
-     * @return [type]           [description]
+     * Begin a transaction, and performing multiple database operations.
+     *
+     * @param  Closure  $closure  The action closure.
+     * @param  mixed    $option   The action closure other parameter.
+     * @return mixed
      */
-    public static function transaction(Closure $closure, $option = null)
+    public static function transaction(\Closure $closure, $option = null)
     {
         return self::getActuator()->transaction($closure, $option);
     }

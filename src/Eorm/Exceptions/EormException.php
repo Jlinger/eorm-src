@@ -15,7 +15,7 @@
 namespace Eorm\Exceptions;
 
 /**
- *
+ * The Edoger ORM Library Exception Class.
  */
 class EormException extends \Exception
 {

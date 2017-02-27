@@ -17,24 +17,27 @@ namespace Models;
 use Eorm\Eorm;
 
 /**
- *
+ * This Is A Test Model Class.
  */
 class Example extends Eorm
 {
     /**
-     * [$table description]
+     * The database table name.
+     *
      * @var null
      */
     protected $table = null;
 
     /**
-     * [$primaryKey description]
+     * The database table primary key name.
+     *
      * @var string
      */
     protected $primaryKey = 'id';
 
     /**
-     * [$server description]
+     * The database server name.
+     *
      * @var string
      */
     protected $server = 'eorm';

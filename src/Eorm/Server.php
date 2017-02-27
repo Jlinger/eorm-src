@@ -24,14 +24,14 @@ use PDO;
 class Server
 {
     /**
-     * The MySQL database server connections.
+     * Database server connections.
      *
      * @var array
      */
     private static $connections = [];
 
     /**
-     * The SQL statement execution hooks.
+     * SQL statement execution hooks.
      *
      * @var array
      */
@@ -55,7 +55,7 @@ class Server
     }
 
     /**
-     * Add a SQL statement execution hook.
+     * Add SQL statement execution hook.
      *
      * @param  Closure  $action     The hook closure.
      * @param  mixed    $parameter  The hook other parameter.
@@ -69,9 +69,9 @@ class Server
     }
 
     /**
-     * Get MySQL database server connection by name.
+     * Get database server connection by server name.
      *
-     * @param  string  $name  The MySQL database server connection name.
+     * @param  string  $name  The database server name.
      * @return PDO
      */
     protected function getConnection($name)
