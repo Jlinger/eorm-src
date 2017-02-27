@@ -12,80 +12,91 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Builder;
+namespace Eorm\Builder\Foundation;
 
-use Eorm\Foundation\Actuator;
-use Eorm\Foundation\Parameter;
+use Eorm\Foundation\Executor;
 
 /**
+ * Eorm builder basic class.
  *
+ * All SQL statement builders must inherit this basic class.
+ * We will manage and inject the dependencies of the SQL statement builder.
  */
 abstract class Basic
 {
     /**
-     * [$parameter description]
+     * The SQL statement executor instance.
      *
-     * @var Eorm\Foundation\Parameter
+     * @var Executor
+     */
+    private $executor;
+
+    /**
+     * The SQL statement parameter manager instance.
+     *
+     * @var Parameter
      */
     private $parameter;
 
     /**
-     * [$actuator description]
+     * The SQL statement builder type name.
+     * All SQL statement builders must override this property.
+     * This property is used to guide the event trigger to execute the corresponding event handler.
      *
-     * @var Eorm\Foundation\Actuator
+     * @var string
      */
-    private $actuator;
+    protected $type = null;
 
     /**
-     * [$type description]
-     * @var null
-     */
-    protected static $type = null;
-
-    /**
-     * [__construct description]
+     * Initializes the SQL statement builder instance,
+     * and injecting the necessary dependency resources.
      *
-     * @param Eorm\Foundation\Actuator   $actuator   [description]
-     * @param Eorm\Foundation\Parameter  $parameter  [description]
+     * @param  Executor   $executor   The SQL statement executor instance.
+     * @param  Parameter  $parameter  The SQL statement parameter manager instance.
+     * @return void
      */
-    public function __construct(Actuator $actuator, Parameter $parameter)
+    public function __construct(Executor $executor, Parameter $parameter = null)
     {
-        $this->actuator  = $actuator;
-        $this->parameter = $parameter;
+        $this->executor = $executor;
+        if ($parameter) {
+            $this->parameter = $parameter;
+        } else {
+            $this->parameter = new Parameter();
+        }
     }
 
     /**
-     * [parameter description]
+     * Gets SQL statement executor instance.
      *
-     * @return Eorm\Foundation\Parameter
+     * @return Executor
      */
-    final public function parameter()
+    final public function getExecutor()
+    {
+        return $this->executor;
+    }
+
+    /**
+     * Gets SQL statement parameter manager instance.
+     *
+     * @return Parameter
+     */
+    final public function getParameter()
     {
         return $this->parameter;
     }
 
     /**
-     * [actuator description]
-     *
-     * @return Eorm\Foundation\Actuator
-     */
-    final public function actuator()
-    {
-        return $this->actuator;
-    }
-
-    /**
-     * [type description]
+     * Gets SQL statement builder type name.
      *
      * @return string
      */
-    final public function type()
+    final public function getType()
     {
-        return static::$type;
+        return $this->type;
     }
 
     /**
-     * [build description]
+     * Build SQL statement.
      *
      * @return string
      */

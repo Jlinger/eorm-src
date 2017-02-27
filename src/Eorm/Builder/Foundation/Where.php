@@ -12,12 +12,11 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Builder;
+namespace Eorm\Builder\Foundation;
 
 use Closure;
 use Eorm\Eorm;
 use Eorm\Exceptions\EormException;
-use Eorm\Foundation\Parameter;
 use Eorm\Library\Helper;
 
 /**
