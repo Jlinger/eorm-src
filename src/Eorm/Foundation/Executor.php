@@ -28,7 +28,7 @@ use Throwable;
 /**
  * Eorm SQL statement actuator class.
  */
-class Actuator
+class Executor
 {
     /**
      * The actuator associated database table name.
