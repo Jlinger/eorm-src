@@ -1,4 +1,6 @@
-# About Eorm (*This branch cannot work, please do not use it.*) #
+# *This branch cannot work, please do not use it.* #
+
+# About Eorm #
 
 - Eorm is a simple PHP object relational mapping library.
 - Eorm is very simple, you don't have to spend too much time learning it.
