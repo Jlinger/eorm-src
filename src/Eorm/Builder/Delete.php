@@ -14,14 +14,14 @@
  */
 namespace Eorm\Builder;
 
-use Eorm\Builder\Foundation\BuilderAbstract;
+use Eorm\Builder\Foundation\Basic;
 use Eorm\Builder\Foundation\Traits\Astriction;
 use Eorm\Builder\Foundation\Traits\Condition;
 
 /**
  *
  */
-class Delete extends BuilderAbstract
+class Delete extends Basic
 {
     use Condition, Astriction;
 

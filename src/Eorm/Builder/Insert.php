@@ -14,13 +14,13 @@
  */
 namespace Eorm\Builder;
 
-use Eorm\Builder\Foundation\BuilderAbstract;
+use Eorm\Builder\Foundation\Basic;
 use Eorm\Library\Helper;
 
 /**
  *
  */
-class Insert extends BuilderAbstract
+class Insert extends Basic
 {
     /**
      * [$type description]

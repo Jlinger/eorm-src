@@ -14,7 +14,7 @@
  */
 namespace Eorm\Builder;
 
-use Eorm\Builder\Foundation\BuilderAbstract;
+use Eorm\Builder\Foundation\Basic;
 use Eorm\Builder\Foundation\Traits\Astriction;
 use Eorm\Builder\Foundation\Traits\Condition;
 use Eorm\Library\Helper;
@@ -22,7 +22,7 @@ use Eorm\Library\Helper;
 /**
  *
  */
-class Select extends BuilderAbstract
+class Select extends Basic
 {
     use Condition, Astriction;
 

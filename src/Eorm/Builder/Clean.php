@@ -14,12 +14,12 @@
  */
 namespace Eorm\Builder;
 
-use Eorm\Builder\Foundation\BuilderAbstract;
+use Eorm\Builder\Foundation\Basic;
 
 /**
  *
  */
-class Clean extends BuilderAbstract
+class Clean extends Basic
 {
     /**
      * [$type description]

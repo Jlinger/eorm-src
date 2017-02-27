@@ -20,7 +20,7 @@ use Eorm\Foundation\Parameter;
 /**
  *
  */
-abstract class BuilderAbstract
+abstract class Basic
 {
     /**
      * [$parameter description]
