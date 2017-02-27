@@ -12,12 +12,35 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Exceptions;
+namespace Eorm\Builder;
 
 /**
- * The Eorm library exception class.
+ *
  */
-class EormException extends \Exception
+class Count extends Select
 {
-    //
+    /**
+     * [$type description]
+     *
+     * @var string
+     */
+    protected static $type = 'count';
+
+    /**
+     * [build description]
+     *
+     * @return string
+     */
+    public function build()
+    {
+        $table = $this->actuator()->table();
+        $filed = $this->actuator()->primaryKey();
+
+        $statement = "SELECT COUNT({$filed}) AS `eorm_count` FROM {$table}";
+        if ($this->where) {
+            $statement .= ' WHERE ' . $this->where->build();
+        }
+
+        return $statement;
+    }
 }

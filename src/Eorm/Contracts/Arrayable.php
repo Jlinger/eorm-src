@@ -12,12 +12,17 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Exceptions;
+namespace Eorm\Contracts;
 
 /**
- * The Eorm library exception class.
+ * Identifies an object that can be converted into an array.
  */
-class EormException extends \Exception
+interface Arrayable
 {
-    //
+    /**
+     * Converts an object to an array.
+     *
+     * @return array
+     */
+    public function toArray();
 }

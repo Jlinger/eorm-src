@@ -12,38 +12,40 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Contracts\Exceptions;
+namespace Eorm\Builder;
+
+use Eorm\Builder\Foundation\Basic;
+use Eorm\Builder\Foundation\Traits\Astriction;
+use Eorm\Builder\Foundation\Traits\Condition;
 
 /**
- * SQL statement execution exception class interface.
+ *
  */
-interface StatementExceptionInterface
+class Delete extends Basic
 {
-    /**
-     * Gets the Exception SQL statement.
-     *
-     * @return string
-     */
-    public function getStatement();
+    use Condition, Astriction;
 
     /**
-     * Gets the Exception database server name.
+     * [$type description]
      *
-     * @return string
+     * @var string
      */
-    public function getServer();
+    protected static $type = 'delete';
 
     /**
-     * Gets the Exception database table name.
-     *
-     * @return string
+     * [build description]
+     * @return [type] [description]
      */
-    public function getTable();
+    public function build()
+    {
+        $statement = 'DELETE FROM ' . $this->actuator()->table();
+        if ($this->where) {
+            $statement .= ' WHERE ' . $this->where->build();
+        }
+        if ($this->limit) {
+            $statement .= ' LIMIT ' . $this->limit;
+        }
 
-    /**
-     * Gets the Exception bound SQL statement parameters.
-     *
-     * @return array
-     */
-    public function getParameters();
+        return $statement;
+    }
 }

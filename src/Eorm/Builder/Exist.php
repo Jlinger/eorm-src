@@ -12,67 +12,35 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Library;
+namespace Eorm\Builder;
 
 /**
  *
  */
-class Argument
+class Exist extends Select
 {
     /**
-     * [$stack description]
-     * @var array
+     * [$type description]
+     *
+     * @var string
      */
-    protected $stack = [];
+    protected static $type = 'exist';
 
     /**
-     * [__construct description]
-     * @param array $values [description]
+     * [build description]
+     *
+     * @return string
      */
-    public function __construct($values = [])
+    public function build()
     {
-        $this->push($values);
-    }
+        $table = $this->actuator()->table();
+        $filed = $this->actuator()->primaryKey();
 
-    /**
-     * [push description]
-     * @param  [type] $values [description]
-     * @return [type]         [description]
-     */
-    public function push($values)
-    {
-        foreach (Helper::toArray($values) as $value) {
-            $this->stack[] = Helper::toScalar($value);
+        $statement = "SELECT {$filed} FROM {$table}";
+        if ($this->where) {
+            $statement .= ' WHERE ' . $this->where->build();
         }
 
-        return $this;
-    }
-
-    /**
-     * [count description]
-     * @return [type] [description]
-     */
-    public function count()
-    {
-        return count($this->stack);
-    }
-
-    /**
-     * [toArray description]
-     * @return [type] [description]
-     */
-    public function toArray()
-    {
-        return $this->stack;
-    }
-
-    /**
-     * [clean description]
-     * @return [type] [description]
-     */
-    public function clean()
-    {
-        $this->stack = [];
-        return $this;
+        return "SELECT EXISTS({$statement} LIMIT 1) AS `eorm_exist`";
     }
 }

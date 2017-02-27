@@ -12,12 +12,28 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Exceptions;
+namespace Eorm\Builder;
+
+use Eorm\Builder\Foundation\Basic;
 
 /**
- * The Eorm library exception class.
+ *
  */
-class EormException extends \Exception
+class Clean extends Basic
 {
-    //
+    /**
+     * [$type description]
+     *
+     * @var string
+     */
+    protected static $type = 'clean';
+
+    /**
+     * [build description]
+     * @return [type] [description]
+     */
+    public function build()
+    {
+        return 'TRUNCATE TABLE ' . $this->actuator()->table();
+    }
 }

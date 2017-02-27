@@ -12,12 +12,45 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Exceptions;
+namespace Eorm\Foundation;
 
 /**
- * The Eorm library exception class.
+ * Eorm event handler abstract class.
  */
-class EormException extends \Exception
+abstract class EventHandlerAbstract
 {
-    //
+    /**
+     * The Eorm event name.
+     *
+     * @var string
+     */
+    protected $name = '';
+
+    /**
+     * Initialize this event handler instanse.
+     *
+     * @param string  $name  The Eorm event name.
+     */
+    public function __construct($name)
+    {
+        $this->name = $name;
+    }
+
+    /**
+     * Gets Eorm event name.
+     *
+     * @return string
+     */
+    public function name()
+    {
+        return $this->name;
+    }
+
+    /**
+     * Execute Eorm event handler.
+     *
+     * @param  Eorm\Foundation\Body  $event  The Eorm event body instanse.
+     * @return boolean
+     */
+    abstract public function handle(Body $body);
 }

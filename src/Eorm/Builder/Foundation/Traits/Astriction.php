@@ -12,12 +12,30 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Exceptions;
+namespace Eorm\Builder\Foundation\Traits;
 
 /**
- * The Eorm library exception class.
+ *
  */
-class EormException extends \Exception
+trait Astriction
 {
-    //
+    /**
+     * [$limit description]
+     *
+     * @var integer
+     */
+    protected $limit = 0;
+
+    /**
+     * [limit description]
+     *
+     * @param  integer  $count  [description]
+     * @return Eorm\Builder\Foundation\BuilderAbstract
+     */
+    public function limit($count)
+    {
+        $this->limit = (int) $count;
+
+        return $this;
+    }
 }

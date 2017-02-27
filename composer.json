@@ -4,7 +4,7 @@
 	"keywords": ["eorm", "orm", "edoger-orm"],
 	"license": "MIT",
 	"type": "library",
-	"homepage": "https://github.com/edoger/eorm",
+	"homepage": "https://github.com/edoger/eorm-src",
 	"authors": [
 		{
 			"name": "Qingshan Luo",
@@ -27,6 +27,11 @@
     "autoload-dev": {
         "psr-4": {
             "EormTest\\": "tests/EormTest/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
         }
     }
 }

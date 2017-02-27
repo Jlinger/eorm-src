@@ -14,29 +14,33 @@
  */
 namespace Models;
 
-use Eorm\Eorm;
+use Eorm\Model;
 
 /**
- * This Is A Test Model Class.
+ * This is a Eorm example model class for testing.
  */
-class Example extends Eorm
+class Example extends Model
 {
     /**
-     * The database table name.
+     * Model associated database table name.
+     * If set to NULL or not set, will use the model class name to lowercase as the default table name.
      *
-     * @var null
+     * @var string|null
      */
     protected $table = null;
 
     /**
-     * The database table primary key name.
+     * Model associated database table primary key name.
+     * If not set, will use 'id' as the default primary key name.
+     * We agree that the primary key field must be self increasing.
      *
      * @var string
      */
     protected $primaryKey = 'id';
 
     /**
-     * The database server name.
+     * Model associated database server name.
+     * If not set, will use 'default' as the default database server name.
      *
      * @var string
      */
