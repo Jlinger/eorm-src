@@ -30,15 +30,15 @@ class Event
      * @var array
      */
     private $handlers = [
+        'execute' => [],
         'select'  => [],
         'update'  => [],
         'insert'  => [],
         'delete'  => [],
-        'replace' => [],
         'clean'   => [],
         'count'   => [],
         'exist'   => [],
-        'execute' => [],
+        'replace' => [],
     ];
 
     /**

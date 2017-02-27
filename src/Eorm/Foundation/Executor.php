@@ -15,6 +15,7 @@
 namespace Eorm\Foundation;
 
 use Closure;
+use Eorm\Builder\Foundation\Basic;
 use Eorm\Contracts\ModelInterface;
 use Eorm\Eorm;
 use Eorm\Event;
@@ -162,29 +163,79 @@ class Executor
      * @param  integer  $type       The SQL statement type.
      * @return integer
      */
-    public function execute($statement, $type)
+    public function execute(Basic $builder)
     {
+        $type      = $builder->getType();
+        $statement = $builder->build();
         if (Kernel::event()->exist('execute')) {
-            Kernel::event()->trigger(new Body('execute', [
-                'statement'  => $statement,
-                'parameters' => [],
-                'server'     => $this->server(),
-                'table'      => $this->table(false),
-                'type'       => $type,
-            ]));
+            $state = Kernel::event()->trigger(
+                new Body(
+                    'execute',
+                    $builder,
+                    $statement,
+                    $this->server(),
+                    $this->table(false)
+                )
+            );
+
+            if (!$state) {
+                return false;
+            }
         }
 
         if (Kernel::event()->exist($type)) {
-            Kernel::event()->trigger(new Body($type, [
-                'statement'  => $statement,
-                'parameters' => [],
-                'server'     => $this->server(),
-                'table'      => $this->table(false),
-                'type'       => $type,
-            ]));
+            $state = Kernel::event()->trigger(
+                new Body(
+                    $type,
+                    $builder,
+                    $statement,
+                    $this->server(),
+                    $this->table(false)
+                )
+            );
+
+            if (!$state) {
+                return false;
+            }
         }
 
-        $rows = $this->connection()->exec($statement);
+        try {
+            $prepared = $this->connection()->prepare($statement);
+        } catch (Exception $e) {
+
+            return false;
+        }
+
+        switch ($type) {
+            case 'select':
+                # code...
+                break;
+            case 'update':
+                # code...
+                break;
+            case 'insert':
+                # code...
+                break;
+            case 'delete':
+                # code...
+                break;
+            case 'count':
+                # code...
+                break;
+            case 'exist':
+                # code...
+                break;
+            case 'clean':
+                # code...
+                break;
+            case 'replace':
+                # code...
+                break;
+            default:
+                # code...
+                break;
+        }
+
         if (!is_int($rows)) {
             if ($this->hasError()) {
                 throw new StatementException(
