@@ -16,6 +16,8 @@ namespace Eorm\Builder\Foundation;
 
 use Countable;
 use Eorm\Contracts\Arrayable;
+use Eorm\Eorm;
+use Eorm\Exceptions\EormException;
 
 /**
  * The Eorm SQL statement parameter manager class.
@@ -53,7 +55,7 @@ class Parameter implements Countable, Arrayable
      * Append a SQL statement parameter.
      *
      * @param  mixed  $param  The SQL statement parameter.
-     * @return boolean
+     * @return Parameter
      */
     public function push($param)
     {
@@ -61,25 +63,24 @@ class Parameter implements Countable, Arrayable
             $this->caches[] = $param;
         } elseif (is_array($param)) {
             foreach ($param as $value) {
-                if (!$this->push($value)) {
-                    return false;
-                }
+                $this->push($value);
             }
         } elseif (is_bool($value)) {
             $this->caches[] = $param ? 1 : 0;
         } elseif ($param instanceof Arrayable) {
             foreach ($param->toArray() as $value) {
-                if (!$this->push($value)) {
-                    return false;
-                }
+                $this->push($value);
             }
         } elseif (is_null($value)) {
             $this->caches[] = '';
         } else {
-            return false;
+            throw new EormException(
+                'The SQL statement argument must be a scalar.',
+                Eorm::ERROR_ARGUMENT
+            );
         }
 
-        return true;
+        return $this;
     }
 
     /**

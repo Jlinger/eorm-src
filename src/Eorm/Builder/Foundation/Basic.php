@@ -14,7 +14,8 @@
  */
 namespace Eorm\Builder\Foundation;
 
-use Eorm\Foundation\Executor;
+use Eorm\Eorm;
+use Eorm\Exceptions\EormException;
 
 /**
  * Eorm builder basic class.
@@ -25,11 +26,25 @@ use Eorm\Foundation\Executor;
 abstract class Basic
 {
     /**
-     * The SQL statement executor instance.
+     * The database table name.
      *
-     * @var Executor
+     * @var string
      */
-    private $executor;
+    private $table;
+
+    /**
+     * The database table primary key field name.
+     *
+     * @var string
+     */
+    private $primaryKey;
+
+    /**
+     * The database server connection name.
+     *
+     * @var string
+     */
+    private $server;
 
     /**
      * The SQL statement parameter manager instance.
@@ -51,38 +66,48 @@ abstract class Basic
      * Initializes the SQL statement builder instance,
      * and injecting the necessary dependency resources.
      *
-     * @param  Executor   $executor   The SQL statement executor instance.
-     * @param  Parameter  $parameter  The SQL statement parameter manager instance.
+     * @param  string     $table       The database table name.
+     * @param  string     $primaryKey  The database table primary key field name.
+     * @param  string     $server      The database server connection name.
+     * @param  Parameter  $parameter   The SQL statement parameter manager instance.
      * @return void
      */
-    public function __construct(Executor $executor, Parameter $parameter = null)
+    public function __construct($table, $primaryKey, $server, Parameter $parameter)
     {
-        $this->executor = $executor;
-        if ($parameter) {
-            $this->parameter = $parameter;
-        } else {
-            $this->parameter = new Parameter();
-        }
+        $this->table      = $table;
+        $this->primaryKey = $primaryKey;
+        $this->server     = $server;
+        $this->parameter  = $parameter;
     }
 
     /**
-     * Gets SQL statement executor instance.
+     * Gets database table name.
      *
-     * @return Executor
+     * @return string
      */
-    final public function getExecutor()
+    final public function getTable()
     {
-        return $this->executor;
+        return $this->table;
     }
 
     /**
-     * Gets SQL statement parameter manager instance.
+     * Gets database table primary key field name.
      *
-     * @return Parameter
+     * @return string
      */
-    final public function getParameter()
+    final public function getPrimaryKey()
     {
-        return $this->parameter;
+        return $this->primaryKey;
+    }
+
+    /**
+     * Gets database server connection name.
+     *
+     * @return string
+     */
+    final public function getServer()
+    {
+        return $this->server;
     }
 
     /**
@@ -93,6 +118,66 @@ abstract class Basic
     final public function getType()
     {
         return $this->type;
+    }
+
+    /**
+     * Format table name or field name.
+     *
+     * @param  string  $name  The table name or field name.
+     * @return string
+     */
+    protected function format($name)
+    {
+        if (is_string($name)) {
+            return '`' . str_replace('`', '``', $name) . '`';
+        } else {
+            throw new EormException(
+                'Table name or field name must be a string.',
+                Eorm::ERROR_ARGUMENT
+            );
+        }
+    }
+
+    /**
+     * Format multiple table names or field names.
+     *
+     * @param  array  $names  The table names or field names.
+     * @return array
+     */
+    protected function formatArray(array $names)
+    {
+        return array_map([$this, 'format'], $names);
+    }
+
+    /**
+     * Gets the formatted database table name.
+     *
+     * @return string
+     */
+    protected function formatTable()
+    {
+        return $this->format($this->getTable());
+    }
+
+    /**
+     * Gets the formatted database table primary key field name
+     *
+     * @return string
+     */
+    protected function formatPrimaryKey()
+    {
+        return $this->format($this->getPrimaryKey());
+    }
+
+    /**
+     * Use commas to connect multiple strings.
+     *
+     * @param  array  $values  The string array.
+     * @return string
+     */
+    protected function join(array $values)
+    {
+        return implode(',', $values);
     }
 
     /**
