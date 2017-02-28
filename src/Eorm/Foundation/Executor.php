@@ -83,31 +83,21 @@ class Executor
     /**
      * Gets the actuator associated database table name.
      *
-     * @param  boolean  $format  Returns the formatted database table name ? (yes)
      * @return string
      */
-    public function table($format = true)
+    public function table()
     {
-        if ($format) {
-            return Helper::format($this->table);
-        } else {
-            return $this->table;
-        }
+        return $this->table;
     }
 
     /**
      * Gets the actuator associated database table primary key name.
      *
-     * @param  boolean  $format  Returns the formatted database table primary key name ? (yes)
      * @return string
      */
-    public function primaryKey($format = true)
+    public function primaryKey()
     {
-        if ($format) {
-            return Helper::format($this->primaryKey);
-        } else {
-            return $this->primaryKey;
-        }
+        return $this->primaryKey;
     }
 
     /**

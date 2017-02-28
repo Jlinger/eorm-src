@@ -14,10 +14,6 @@
  */
 namespace Eorm;
 
-use Eorm\Foundation\Actuator;
-use Eorm\Library\Argument;
-use Eorm\Library\Builder;
-use Eorm\Library\Helper;
 use Eorm\Library\Query;
 use Eorm\Library\Storage;
 use Eorm\Library\Where;
@@ -56,7 +52,7 @@ class Model
      */
     public static function table()
     {
-        return Kernel::actuator(static::class)->table(false);
+        return Kernel::executor(static::class)->table();
     }
 
     /**
@@ -66,7 +62,7 @@ class Model
      */
     public static function primaryKey()
     {
-        return Kernel::actuator(static::class)->primaryKey(false);
+        return Kernel::executor(static::class)->primaryKey();
     }
 
     /**
@@ -80,7 +76,7 @@ class Model
      */
     public static function where($target, $value = null, $option = true, $mode = true)
     {
-        return static::query($mode)->where($target, $value, $option);
+        return self::query($mode)->where($target, $value, $option);
     }
 
     /**
@@ -89,18 +85,9 @@ class Model
      * @param  integer|array  $ids  The primary keys.
      * @return Storage
      */
-    public static function find($ids)
+    public static function find($ids, $fields = [])
     {
-        $actuator = Kernel::actuator(static::class);
-        $argument = new Argument($ids);
-        $count    = $argument->count();
-        $table    = $actuator->getTable();
-        $where    = Builder::makeWhereIn($actuator->getPrimaryKey(false), $count);
-
-        return new Storage(
-            $actuator->fetch("SELECT * FROM {$table} WHERE {$where} LIMIT {$count}", $argument),
-            $actuator
-        );
+        return self::where(self::primaryKey(), $ids)->get($fields);
     }
 
     /**
@@ -109,9 +96,9 @@ class Model
      * @param  boolean  $mode  The where mode.
      * @return Query
      */
-    public static function query($mode = true)
+    public static function query()
     {
-        return new Query(Kernel::actuator(static::class), $mode);
+        return new Query(Kernel::executor(static::class));
     }
 
     /**
@@ -119,15 +106,9 @@ class Model
      *
      * @return Storage
      */
-    public static function all()
+    public static function all($fields = [])
     {
-        $actuator = Kernel::actuator(static::class);
-        $table    = $actuator->getTable();
-
-        return new Storage(
-            $actuator->fetch("SELECT * FROM {$table}"),
-            $actuator
-        );
+        return self::query($mode)->get($fields);
     }
 
     /**
@@ -138,28 +119,7 @@ class Model
      */
     public static function create(array $columns)
     {
-        $actuator = Kernel::actuator(static::class);
-        $field    = Builder::makeField(array_keys($columns));
-        $table    = $actuator->getTable();
-        $columns  = Builder::normalizeInsertRows(array_values($columns));
-        $rowCount = count(reset($columns));
-        $argument = new Argument();
-        $unit     = Helper::fill(count($columns));
-        $values   = implode(',', array_map(function (...$row) use ($argument, $unit) {
-            $argument->push($row);
-            return $unit;
-        }, ...$columns));
-
-        $actuator->fetch("INSERT INTO {$table} ({$field}) VALUES {$values}", $argument);
-
-        $ids   = Helper::range($actuator->lastId(), $rowCount);
-        $count = $argument->clean()->push($ids)->count();
-        $where = Builder::makeWhereIn($actuator->getPrimaryKey(false), $count);
-
-        return new Storage(
-            $actuator->fetch("SELECT * FROM {$table} WHERE {$where} LIMIT {$count}", $argument),
-            $actuator
-        );
+        return self::query()->create($columns);
     }
 
     /**
@@ -170,21 +130,7 @@ class Model
      */
     public static function insert(array $columns)
     {
-        $actuator = Kernel::actuator(static::class);
-        $field    = Builder::makeField(array_keys($columns));
-        $table    = $actuator->getTable();
-        $columns  = Builder::normalizeInsertRows(array_values($columns));
-        $rowCount = count(reset($columns));
-        $argument = new Argument();
-        $unit     = Helper::fill(count($columns));
-        $values   = implode(',', array_map(function (...$row) use ($argument, $unit) {
-            $argument->push($row);
-            return $unit;
-        }, ...$columns));
-
-        $actuator->fetch("INSERT INTO {$table} ({$field}) VALUES {$values}", $argument);
-
-        return Helper::range($actuator->lastId(), $rowCount);
+        return self::query()->insert($columns);
     }
 
     /**
@@ -196,18 +142,7 @@ class Model
      */
     public static function count($column = null, $distinct = false)
     {
-        $actuator = Kernel::actuator(static::class);
-        $table    = $actuator->getTable();
-        $field    = Builder::makeCountField(
-            is_null($column) ? $actuator->getPrimaryKey(false) : $column,
-            $distinct
-        );
-
-        return intval(
-            $actuator
-                ->fetch("SELECT {$field} FROM {$table}")
-                ->fetchAll(\PDO::FETCH_ASSOC)[0]['total']
-        );
+        return self::query()->count($column, $distinct);
     }
 
     /**
@@ -218,15 +153,7 @@ class Model
      */
     public static function destroy($ids)
     {
-        $actuator = Kernel::actuator(static::class);
-        $table    = $actuator->getTable();
-        $argument = new Argument($ids);
-        $count    = $argument->count();
-        $where    = Builder::makeWhereIn($actuator->getPrimaryKey(false), $count);
-
-        return $actuator
-            ->fetch("DELETE FROM {$table} WHERE {$where} LIMIT {$count}", $argument)
-            ->rowCount();
+        return self::query()->destroy($ids);
     }
 
     /**
@@ -236,10 +163,7 @@ class Model
      */
     public static function clean()
     {
-        $actuator = Kernel::actuator(static::class);
-        $actuator->fetch('TRUNCATE TABLE ' . $actuator->getTable());
-
-        return true;
+        return self::query()->clean();
     }
 
     /**
@@ -251,6 +175,6 @@ class Model
      */
     public static function transaction(\Closure $closure, $option = null)
     {
-        return Kernel::actuator(static::class)->transaction($closure, $option);
+        return Kernel::executor(static::class)->transaction($closure, $option);
     }
 }
