@@ -30,28 +30,28 @@ abstract class Basic
      *
      * @var string
      */
-    private $table;
+    protected $table;
 
     /**
      * The database table primary key field name.
      *
      * @var string
      */
-    private $primaryKey;
+    protected $primaryKey;
 
     /**
      * The database server connection name.
      *
      * @var string
      */
-    private $server;
+    protected $server;
 
     /**
      * The SQL statement parameter manager instance.
      *
      * @var Parameter
      */
-    private $parameter;
+    protected $parameter;
 
     /**
      * The SQL statement builder type name.
@@ -156,7 +156,7 @@ abstract class Basic
      */
     protected function formatTable()
     {
-        return $this->format($this->getTable());
+        return $this->format($this->table);
     }
 
     /**
@@ -166,7 +166,7 @@ abstract class Basic
      */
     protected function formatPrimaryKey()
     {
-        return $this->format($this->getPrimaryKey());
+        return $this->format($this->primaryKey);
     }
 
     /**

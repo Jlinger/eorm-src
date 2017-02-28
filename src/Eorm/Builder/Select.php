@@ -17,7 +17,6 @@ namespace Eorm\Builder;
 use Eorm\Builder\Foundation\Basic;
 use Eorm\Builder\Foundation\Traits\Astriction;
 use Eorm\Builder\Foundation\Traits\Condition;
-use Eorm\Library\Helper;
 
 /**
  *
@@ -27,26 +26,29 @@ class Select extends Basic
     use Condition, Astriction;
 
     /**
-     * [$type description]
+     * The SQL statement builder type name.
      *
      * @var string
      */
-    protected static $type = 'select';
+    protected $type = 'select';
 
     /**
-     * [$fields description]
+     * Query field list.
+     *
      * @var array
      */
     protected $fields = [];
 
     /**
-     * [$orderBy description]
+     * Sort field list.
+     *
      * @var array
      */
     protected $orderBy = [];
 
     /**
-     * [$skip description]
+     * Result set ignored row count.
+     *
      * @var integer
      */
     protected $skip = 0;
@@ -55,22 +57,11 @@ class Select extends Basic
      * [field description]
      * @param  [type] $field [description]
      * @param  [type] $alias [description]
-     * @return [type]        [description]
+     * @return Select
      */
-    public function field($field, $alias = null)
+    public function field($field)
     {
-        if (empty($this->fields)) {
-            $primaryKey = $this->actuator()->primaryKey(false);
-            if ($field !== $primaryKey) {
-                $this->fields[$primaryKey] = $this->actuator()->primaryKey();
-            }
-        }
-
-        if (is_null($alias)) {
-            $this->fields[$field] = Helper::format($field);
-        } else {
-            $this->fields[$alias] = Helper::format($field) . ' AS ' . Helper::format($alias);
-        }
+        $this->fields[$field] = $this->format($field);
 
         return $this;
     }
@@ -83,7 +74,11 @@ class Select extends Basic
      */
     public function orderBy($field, $ascend)
     {
-        $this->orderBy[$field] = Helper::format($field) . ' ' . ($ascend ? 'ASC' : 'DESC');
+        if ($ascend) {
+            $this->orderBy[$field] = $this->format($field) . ' ASC';
+        } else {
+            $this->orderBy[$field] = $this->format($field) . ' DESC';
+        }
 
         return $this;
     }
@@ -95,7 +90,7 @@ class Select extends Basic
      */
     public function skip($count)
     {
-        $this->skip = $count;
+        $this->skip = (int) $count;
 
         return $this;
     }
@@ -106,11 +101,11 @@ class Select extends Basic
      */
     public function build()
     {
-        $table = $this->actuator()->table();
+        $table = $this->formatTable();
         if (empty($this->fields)) {
             $filed = '*';
         } else {
-            $filed = implode(',', $this->fields);
+            $filed = $this->join($this->fields);
         }
 
         $statement = "SELECT {$filed} FROM {$table}";
@@ -118,7 +113,7 @@ class Select extends Basic
             $statement .= ' WHERE ' . $this->where->build();
         }
         if (!empty($this->orderBy)) {
-            $statement .= ' ORDER BY ' . implode(',', $this->orderBy);
+            $statement .= ' ORDER BY ' . $this->join($this->orderBy);
         }
         if ($this->limit) {
             if ($this->skip) {

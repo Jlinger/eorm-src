@@ -24,7 +24,7 @@ class Count extends Select
      *
      * @var string
      */
-    protected static $type = 'count';
+    protected $type = 'count';
 
     /**
      * [build description]
@@ -33,8 +33,8 @@ class Count extends Select
      */
     public function build()
     {
-        $table = $this->actuator()->table();
-        $filed = $this->actuator()->primaryKey();
+        $table = $this->formatTable();
+        $filed = $this->formatPrimaryKey();
 
         $statement = "SELECT COUNT({$filed}) AS `eorm_count` FROM {$table}";
         if ($this->where) {

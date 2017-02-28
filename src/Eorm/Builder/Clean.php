@@ -26,7 +26,7 @@ class Clean extends Basic
      *
      * @var string
      */
-    protected static $type = 'clean';
+    protected $type = 'clean';
 
     /**
      * [build description]
@@ -34,6 +34,6 @@ class Clean extends Basic
      */
     public function build()
     {
-        return 'TRUNCATE TABLE ' . $this->actuator()->table();
+        return 'TRUNCATE TABLE ' . $this->formatTable();
     }
 }
