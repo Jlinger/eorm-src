@@ -42,7 +42,7 @@ trait Condition
     public function where($target, $value = null, $option = true, $mode = true)
     {
         if (is_null($this->where)) {
-            $this->where = new Where($this->parameter());
+            $this->where = new Where($this->parameter);
             $this->where->setMode($mode);
         }
 
