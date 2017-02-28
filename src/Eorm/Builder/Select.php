@@ -101,28 +101,33 @@ class Select extends Basic
      */
     public function build()
     {
-        $table = $this->formatTable();
         if (empty($this->fields)) {
             $filed = '*';
         } else {
+            if (!isset($this->fields[$this->table])) {
+                $this->fields[$this->table] = $this->formatPrimaryKey();
+            }
             $filed = $this->join($this->fields);
         }
 
-        $statement = "SELECT {$filed} FROM {$table}";
+        $sql = 'SELECT ' . $filed . ' FROM ' . $this->formatTable();
+
         if ($this->where) {
-            $statement .= ' WHERE ' . $this->where->build();
+            $sql .= ' WHERE ' . $this->where->build();
         }
+
         if (!empty($this->orderBy)) {
-            $statement .= ' ORDER BY ' . $this->join($this->orderBy);
+            $sql .= ' ORDER BY ' . $this->join($this->orderBy);
         }
+
         if ($this->limit) {
             if ($this->skip) {
-                $statement .= ' LIMIT ' . $this->skip . ',' . $this->limit;
+                $sql .= ' LIMIT ' . $this->skip . ',' . $this->limit;
             } else {
-                $statement .= ' LIMIT ' . $this->limit;
+                $sql .= ' LIMIT ' . $this->limit;
             }
         }
 
-        return $statement;
+        return $sql;
     }
 }

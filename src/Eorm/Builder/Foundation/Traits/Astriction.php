@@ -20,17 +20,17 @@ namespace Eorm\Builder\Foundation\Traits;
 trait Astriction
 {
     /**
-     * [$limit description]
+     * The maximum row count.
      *
      * @var integer
      */
     protected $limit = 0;
 
     /**
-     * [limit description]
+     * Set the maximum row count affected.
      *
-     * @param  integer  $count  [description]
-     * @return Eorm\Builder\Foundation\BuilderAbstract
+     * @param  integer  $count  The maximum row count.
+     * @return Basic
      */
     public function limit($count)
     {

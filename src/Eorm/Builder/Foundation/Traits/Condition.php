@@ -24,20 +24,20 @@ use Eorm\Exceptions\EormException;
 trait Condition
 {
     /**
-     * [$where description]
+     * SQL where condition builder instance.
      *
-     * @var Eorm\Builder\Foundation\Where
+     * @var Where
      */
     protected $where = null;
 
     /**
-     * [where description]
+     * Set filter conditions.
      *
-     * @param  mixed    $target  [description]
-     * @param  mixed    $value   [description]
-     * @param  boolean  $option  [description]
-     * @param  boolean  $mode    [description]
-     * @return Eorm\Builder\Foundation\BuilderAbstract
+     * @param  mixed    $target  Targets for filtering conditions.
+     * @param  mixed    $value   Conditional value.
+     * @param  boolean  $option  Relationship constraint option.
+     * @param  boolean  $mode    Top level connection mode.
+     * @return Basic
      */
     public function where($target, $value = null, $option = true, $mode = true)
     {
@@ -50,7 +50,10 @@ trait Condition
             $this->where->condition($target, $value, $option);
         } elseif (is_array($target)) {
             if (empty($target)) {
-                throw new EormException('Condition target cannot be an empty array.', Eorm::ERROR_ARGUMENT);
+                throw new EormException(
+                    'Condition target cannot be an empty array.',
+                    Eorm::ERROR_ARGUMENT
+                );
             } else {
                 foreach ($target as $field => $rule) {
                     $this->where->condition($field, $rule, $option);
@@ -59,7 +62,10 @@ trait Condition
         } elseif ($target instanceof Closure) {
             $target($this->where, $value);
         } else {
-            throw new EormException('Illegal condition target.', Eorm::ERROR_ARGUMENT);
+            throw new EormException(
+                'Illegal condition target.',
+                Eorm::ERROR_ARGUMENT
+            );
         }
 
         return $this;

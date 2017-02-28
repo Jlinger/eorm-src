@@ -17,7 +17,6 @@ namespace Eorm\Builder\Foundation;
 use Closure;
 use Eorm\Eorm;
 use Eorm\Exceptions\EormException;
-use Eorm\Library\Helper;
 
 /**
  * SQL where condition builder class.
@@ -25,26 +24,32 @@ use Eorm\Library\Helper;
 class Where
 {
     /**
-     * [$mode description]
+     * Conditional connection mode.
+     *
      * @var boolean
      */
     protected $mode = true;
 
     /**
-     * [$parameter description]
-     * @var [type]
+     * The SQL statement parameter manager instance.
+     *
+     * @var Parameter
      */
     protected $parameter;
 
     /**
-     * [$conditions description]
+     * Filtration conditions.
+     *
      * @var array
      */
     protected $conditions = [];
 
     /**
-     * [__construct description]
-     * @param Parameter $parameter [description]
+     * Initializes SQL where condition builder,
+     * and injecting the necessary dependency resources.
+     *
+     * @param  Parameter  $parameter  The SQL statement parameter manager instance.
+     * @return void
      */
     public function __construct(Parameter $parameter)
     {
@@ -52,19 +57,22 @@ class Where
     }
 
     /**
-     * [setMode description]
-     * @param [type] $mode [description]
+     * Set conditional connection mode.
+     *
+     * @param  boolean  $mode  The conditional connection mode.
+     * @return Where
      */
     public function setMode($mode)
     {
-        $this->mode = $mode;
+        $this->mode = (bool) $mode;
 
         return $this;
     }
 
     /**
-     * [getMode description]
-     * @return [type] [description]
+     * Gets conditional connection mode.
+     *
+     * @return boolean
      */
     public function getMode()
     {
@@ -72,30 +80,32 @@ class Where
     }
 
     /**
-     * [build description]
-     * @return [type] [description]
+     * Build SQL where condition.
+     *
+     * @return string
      */
     public function build()
     {
-        return implode(
-            $this->getMode() ? ' AND ' : ' OR ',
-            $this->conditions
-        );
+        $connector = $this->getMode() ? ' AND ' : ' OR ';
+
+        return implode($connector, $this->conditions);
     }
 
     /**
-     * [condition description]
-     * @param  [type] $field  [description]
-     * @param  [type] $value  [description]
-     * @param  [type] $option [description]
-     * @return [type]         [description]
+     * Append a SQL filter condition.
+     *
+     * @param  string  $field   The table field name.
+     * @param  mixed   $value   Conditional value.
+     * @param  mixed   $option  Relationship constraint option.
+     * @return Where
      */
     public function condition($field, $value, $option)
     {
         if (is_string($value) || is_numeric($value) || is_bool($value)) {
             if (is_bool($option)) {
-                return $option ? $this->equal($target, $value) : $this->notEqual($target, $value);
+                $option = $option ? '=' : '!=';
             }
+
             switch ($option) {
                 case '=':
                     return $this->equal($target, $value);
@@ -114,16 +124,28 @@ class Where
                 case '!~=':
                     return $this->notLike($target, $value);
             }
-            throw new EormException('Invalid conditional connection.', Eorm::ERROR_ARGUMENT);
+
+            throw new EormException(
+                'Invalid conditional connection.',
+                Eorm::ERROR_ARGUMENT
+            );
         } elseif (is_array($value)) {
-            if (!empty($value)) {
-                return $option ? $this->inArray($target, $value) : $this->notInArray($target, $value);
+            if ($option) {
+                return $this->inArray($target, $value);
+            } else {
+                return $this->notInArray($target, $value);
             }
-            throw new EormException('Condition value cannot be an empty array.', Eorm::ERROR_ARGUMENT);
         } elseif (is_null($value)) {
-            return $option ? $this->isNull($target) : $this->isNotNull($target);
+            if ($option) {
+                return $this->isNull($target);
+            } else {
+                return $this->isNotNull($target);
+            }
         } else {
-            throw new EormException('Illegal condition value.', Eorm::ERROR_ARGUMENT);
+            throw new EormException(
+                'Illegal condition value.',
+                Eorm::ERROR_ARGUMENT
+            );
         }
     }
 
@@ -135,10 +157,9 @@ class Where
      */
     public function equal($field, $value)
     {
-        $this->conditions[] = Helper::format($field) . '=?';
-        $this->parameter->push($value);
-
-        return $this;
+        return $this
+            ->pushCondition($this->format($field) . '=?')
+            ->pushParameter($value);
     }
 
     /**
@@ -149,10 +170,9 @@ class Where
      */
     public function notEqual($field, $value)
     {
-        $this->conditions[] = Helper::format($field) . '!=?';
-        $this->parameter->push($value);
-
-        return $this;
+        return $this
+            ->pushCondition($this->format($field) . '!=?')
+            ->pushParameter($value);
     }
 
     /**
@@ -163,10 +183,9 @@ class Where
      */
     public function greater($field, $value)
     {
-        $this->conditions[] = Helper::format($field) . '>?';
-        $this->parameter->push($value);
-
-        return $this;
+        return $this
+            ->pushCondition($this->format($field) . '>?')
+            ->pushParameter($value);
     }
 
     /**
@@ -177,10 +196,9 @@ class Where
      */
     public function greaterEqual($field, $value)
     {
-        $this->conditions[] = Helper::format($field) . '>=?';
-        $this->parameter->push($value);
-
-        return $this;
+        return $this
+            ->pushCondition($this->format($field) . '>=?')
+            ->pushParameter($value);
     }
 
     /**
@@ -191,10 +209,9 @@ class Where
      */
     public function less($field, $value)
     {
-        $this->conditions[] = Helper::format($field) . '<?';
-        $this->parameter->push($value);
-
-        return $this;
+        return $this
+            ->pushCondition($this->format($field) . '<?')
+            ->pushParameter($value);
     }
 
     /**
@@ -205,10 +222,9 @@ class Where
      */
     public function lessEqual($field, $value)
     {
-        $this->conditions[] = Helper::format($field) . '<=?';
-        $this->parameter->push($value);
-
-        return $this;
+        return $this
+            ->pushCondition($this->format($field) . '<=?')
+            ->pushParameter($value);
     }
 
     /**
@@ -219,10 +235,18 @@ class Where
      */
     public function inArray($field, array $value)
     {
-        $this->conditions[] = Helper::format($field) . ' IN ' . Helper::fill(count($value));
-        $this->parameter->pushMany($value);
+        $count = count($value);
 
-        return $this;
+        if (!$count) {
+            throw new EormException(
+                'Condition value cannot be an empty array.',
+                Eorm::ERROR_ARGUMENT
+            );
+        }
+
+        return $this
+            ->pushCondition($this->format($field) . ' IN ' . $this->fill($count))
+            ->pushParameter($value);
     }
 
     /**
@@ -233,10 +257,18 @@ class Where
      */
     public function notInArray($field, array $value)
     {
-        $this->conditions[] = Helper::format($field) . ' NOT IN ' . Helper::fill(count($value));
-        $this->parameter->pushMany($value);
+        $count = count($value);
 
-        return $this;
+        if (!$count) {
+            throw new EormException(
+                'Condition value cannot be an empty array.',
+                Eorm::ERROR_ARGUMENT
+            );
+        }
+
+        return $this
+            ->pushCondition($this->format($field) . ' NOT IN ' . $this->fill($count))
+            ->pushParameter($value);
     }
 
     /**
@@ -246,9 +278,7 @@ class Where
      */
     public function isNull($field)
     {
-        $this->conditions[] = Helper::format($field) . ' IS NULL';
-
-        return $this;
+        return $this->pushCondition($this->format($field) . ' IS NULL');
     }
 
     /**
@@ -258,9 +288,7 @@ class Where
      */
     public function isNotNull($field)
     {
-        $this->conditions[] = Helper::format($field) . ' IS NOT NULL';
-
-        return $this;
+        return $this->pushCondition($this->format($field) . ' IS NOT NULL');
     }
 
     /**
@@ -271,10 +299,9 @@ class Where
      */
     public function like($field, $value)
     {
-        $this->conditions[] = Helper::format($field) . ' LIKE ?';
-        $this->parameter->push($value);
-
-        return $this;
+        return $this
+            ->pushCondition($this->format($field) . ' LIKE ?')
+            ->pushParameter($value);
     }
 
     /**
@@ -285,10 +312,9 @@ class Where
      */
     public function notLike($field, $value)
     {
-        $this->conditions[] = Helper::format($field) . ' NOT LIKE ?';
-        $this->parameter->push($value);
-
-        return $this;
+        return $this
+            ->pushCondition($this->format($field) . ' NOT LIKE ?')
+            ->pushParameter($value);
     }
 
     /**
@@ -300,11 +326,10 @@ class Where
     public function groupAnd(Closure $closure, $option = null)
     {
         $where = new Where($this->parameter);
-        $closure($where, $option);
-        $where->setMode(true);
-        $this->conditions[] = '(' . $where->build() . ')';
 
-        return $this;
+        $closure($where, $option);
+
+        return $this->pushCondition('(' . $where->setMode(true)->build() . ')');
     }
 
     /**
@@ -316,9 +341,59 @@ class Where
     public function groupOr(Closure $closure, $option = null)
     {
         $where = new Where($this->parameter);
+
         $closure($where, $option);
-        $where->setMode(false);
-        $this->conditions[] = '(' . $where->build() . ')';
+
+        return $this->pushCondition('(' . $where->setMode(false)->build() . ')');
+    }
+
+    /**
+     * [format description]
+     * @param  [type] $field [description]
+     * @return [type]        [description]
+     */
+    protected function format($field)
+    {
+        if (is_string($field)) {
+            return '`' . str_replace('`', '``', $field) . '`';
+        } else {
+            throw new EormException(
+                'Field name must be a string.',
+                Eorm::ERROR_ARGUMENT
+            );
+        }
+    }
+
+    /**
+     * [fill description]
+     * @param  [type] $count [description]
+     * @return [type]        [description]
+     */
+    protected function fill($count)
+    {
+        return '(' . implode(',', array_fill(0, $count, '?')) . ')';
+    }
+
+    /**
+     * [pushCondition description]
+     * @param  [type] $condition [description]
+     * @return [type]            [description]
+     */
+    protected function pushCondition($condition)
+    {
+        $this->conditions[] = $condition;
+
+        return $this;
+    }
+
+    /**
+     * [pushParameter description]
+     * @param  [type] $param [description]
+     * @return [type]        [description]
+     */
+    protected function pushParameter($param)
+    {
+        $this->parameter->push($param);
 
         return $this;
     }
