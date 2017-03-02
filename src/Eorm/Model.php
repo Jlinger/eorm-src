@@ -76,7 +76,7 @@ class Model
      */
     public static function where($target, $value = null, $option = true, $mode = true)
     {
-        return self::query($mode)->where($target, $value, $option);
+        return self::query()->where($target, $value, $option, $mode);
     }
 
     /**
