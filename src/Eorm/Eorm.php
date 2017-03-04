@@ -35,12 +35,13 @@ class Eorm
     const ERROR_EVENT    = 1005;
 
     /**
-     * Gets Eorm version string.
+     * Get eorm version.
      *
      * @return string
      */
     public static function version()
     {
+
         return self::VERSION;
     }
 
@@ -53,7 +54,7 @@ class Eorm
      * @param  string       $name        The database server connection name.
      * @return boolean
      */
-    public static function grip($connection, $name = 'default')
+    public static function server($connection, $name = 'default')
     {
         if ($connection instanceof Closure) {
             return Kernel::bind($name, $connection);
@@ -73,6 +74,7 @@ class Eorm
      */
     public static function event()
     {
+
         return Kernel::event();
     }
 
@@ -84,6 +86,7 @@ class Eorm
      */
     public static function on(EventHandlerAbstract $handler)
     {
+
         return Kernel::event()->bind($handler);
     }
 
@@ -95,6 +98,7 @@ class Eorm
      */
     public static function off($name)
     {
+
         return Kernel::event()->off(strtolower($name));
     }
 }

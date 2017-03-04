@@ -12,7 +12,7 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Foundation;
+namespace Eorm\Event;
 
 /**
  * Eorm event body class.
@@ -39,7 +39,7 @@ class Body
      * @param string  $name        The Eorm event name.
      * @param array   $properties  The Eorm event body contains all properties.
      */
-    public function __construct($name, array $properties = [])
+    public function __construct($name, $builder, array $properties = [])
     {
         $this->name       = $name;
         $this->properties = $properties;
@@ -52,6 +52,7 @@ class Body
      */
     public function name()
     {
+
         return $this->name;
     }
 
@@ -80,6 +81,7 @@ class Body
      */
     public function exists($name)
     {
+
         return array_key_exists($name, $this->properties);
     }
 
@@ -93,6 +95,7 @@ class Body
      */
     public function __get($name)
     {
+
         return $this->get($name);
     }
 
@@ -105,6 +108,7 @@ class Body
      */
     public function __isset($name)
     {
+
         return $this->exists($name);
     }
 }

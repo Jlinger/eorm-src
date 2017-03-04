@@ -12,7 +12,7 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Foundation;
+namespace Eorm\Event;
 
 use Eorm\Eorm;
 use Eorm\Exceptions\EormException;
@@ -50,6 +50,7 @@ class Event
      */
     public function exist($name)
     {
+
         return !empty($this->handlers[$name]);
     }
 
@@ -62,6 +63,7 @@ class Event
     public function bind(EventHandlerAbstract $handler)
     {
         $name = $handler->name();
+
         if ($name && isset($this->handlers[$name])) {
             array_unshift($this->handlers[$name], $handler);
             return true;

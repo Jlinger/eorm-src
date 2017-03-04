@@ -12,12 +12,12 @@
  *| @author    Qingshan Luo <shanshan.lqs@gmail.com>                                               |
  *+------------------------------------------------------------------------------------------------+
  */
-namespace Eorm\Foundation;
+namespace Eorm\Event;
 
 /**
  * Eorm event handler abstract class.
  */
-abstract class EventHandlerAbstract
+abstract class EventHandler
 {
     /**
      * The Eorm event name.
@@ -41,7 +41,7 @@ abstract class EventHandlerAbstract
      *
      * @return string
      */
-    public function name()
+    final public function name()
     {
         return $this->name;
     }
